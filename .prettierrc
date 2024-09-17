@@ -1,0 +1,17 @@
+{
+    "tabWidth": 4,
+    "overrides": [
+        {
+            "files": "*.test.js",
+            "options": {
+                "semi": true
+            }
+        },
+        {
+            "files": ["*.tsx"],
+            "options": {
+                "tabWidth": 2
+            }
+        }
+    ]
+}
