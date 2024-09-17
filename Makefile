@@ -43,7 +43,7 @@ setup-dep: make-executable ## Set up your development environment
 	@echo
 
 .PHONY: install
-install: setup-dev ## Install dependencies
+install: ## Install dependencies
 	pnpm install
 
 .PHONY: lint
