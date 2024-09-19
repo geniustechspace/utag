@@ -39,6 +39,7 @@ setup-dev: set-executable ## Set up your development environment
 .PHONY: setup-dep
 setup-dep: set-executable ## Set up your development environment
 	@echo "Setting up the development environment..."
+	chmod +x "$(CURDIR)/scripts/dep/setup.sh"
 	"$(CURDIR)/scripts/dep/setup.sh"
 	@echo
 
