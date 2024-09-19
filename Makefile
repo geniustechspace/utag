@@ -44,7 +44,7 @@ setup-dep: set-executable ## Set up your development environment
 
 .PHONY: install
 install: set-executable ## Install dependencies
-    "$(CURDIR)/scripts/utils/install-pnpm.sh"
+	"$(CURDIR)/scripts/utils/install-pnpm.sh"
 	pnpm install
 
 .PHONY: lint
