@@ -6,7 +6,14 @@ echo "Checking for pnpm installation..."
 if ! command -v pnpm &> /dev/null; then
     echo "pnpm is not installed."
     echo
-    read -p "Do you want to install pnpm? (y/n) " response
+
+    # Check if an argument is provided for non-interactive mode
+    if [[ "$1" == "--auto-confirm" || "$1" == "-y" || "$1" == "--yes" ]]; then
+        response="yes"
+    else
+        read -p "Do you want to install pnpm? (y/n) " response
+    fi
+
     if [[ "$response" == "y" || "$response" == "yes" || "$response" == "Y" || "$response" == "YES" ]]; then
         echo "Installing pnpm..."
         npm install -g pnpm

@@ -22,28 +22,28 @@ help: ## Show this help message
 	@egrep -h '\s##\s' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 	@echo ====================================================================
 
-.PHONY: make-executable
-make-executable: ## Make scripts executable
+.PHONY: set-executable
+set-executable: ## Make scripts executable
 	@echo "Setting executable permission for dev scripts"
 	chmod +x "$(CURDIR)/scripts/utils/install-pnpm.sh"
 	chmod +x "$(CURDIR)/scripts/utils/install-jq.sh"
 	@echo
 
 .PHONY: setup-dev
-setup-dev: make-executable ## Set up your development environment
+setup-dev: set-executable ## Set up your development environment
 	@echo "Setting up the development environment..."
 	chmod +x "$(CURDIR)/scripts/dev/setup.sh"
 	"$(CURDIR)/scripts/dev/setup.sh"
 	@echo
 
 .PHONY: setup-dep
-setup-dep: make-executable ## Set up your development environment
+setup-dep: set-executable ## Set up your development environment
 	@echo "Setting up the development environment..."
 	"$(CURDIR)/scripts/dep/setup.sh"
 	@echo
 
 .PHONY: install
-install: ## Install dependencies
+install: set-executable ## Install dependencies
     "$(CURDIR)/scripts/utils/install-pnpm.sh"
 	pnpm install
 
@@ -81,3 +81,10 @@ deep-clean: clean ## Delete all node_modules and re-install them
 	pnpm cache clean --force
 	rm -rf node_modules
 	pnpm install
+
+.PHONY: crlf-to-lf
+crlf-to-lf: ## Change files line endings from CRLF to LF
+	@echo "Changing files line endings from CRLF to LF ..."
+	chmod +x "$(CURDIR)/scripts/utils/crlf-to-lf.sh"
+	"$(CURDIR)/scripts/utils/crlf-to-lf.sh"
+	@echo

@@ -1,3 +1,10 @@
+export const internalUrls = {
+    home: "/",
+    auth: "/auth",
+    login: "/auth/login",
+    signup: "/auth/signup",
+};
+
 /* eslint-disable prettier/prettier */
 export type SiteConfig = typeof siteConfig;
 
