@@ -57,6 +57,11 @@ dev: install ## Start the development environment
 	@echo "Starting development environment..."
 	pnpm run dev
 
+.PHONY: run-dev
+run-dev: ## Start the development environment
+	@echo "Starting development environment..."
+	pnpm run dev
+
 .PHONY: build
 build: install ## Build the project
 	@echo "Building the project..."

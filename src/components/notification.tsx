@@ -8,84 +8,50 @@ import {
   DropdownSection,
   DropdownItem,
 } from "@nextui-org/dropdown";
-import { Avatar } from "@nextui-org/avatar";
-import { User } from "@nextui-org/user";
+import {Badge} from "@nextui-org/badge"
+import { IoIosNotifications } from "react-icons/io";
 
 import { internalUrls } from "@/config/site-config";
 import { logOut, useAuth } from "@/providers/auth-provider";
 import { Button } from "@nextui-org/button";
 
-export const UserProfile = () => {
+export const NotificationDropdown = () => {
   const router = useRouter();
 
   const { user } = useAuth();
 
   const handleLogOut = async () => {
     logOut();
-    router.push(internalUrls.signin);
+    router.push(internalUrls.home);
   };
 
   return (
     <Dropdown
       showArrow
+      radius="sm"
       placement="bottom-end"
-      offset={14}
+      offset={18}
       shadow="md"
       closeOnSelect={false}
     >
       <DropdownTrigger>
         <Button
           isIconOnly
+          size="sm"
           radius="full"
           // color="primary"
-          variant="light"
-          className="flex gap-4 items-center mx-2"
+          variant="ghost"
           type="button"
-          aria-label="Profile"
+          aria-label="Notification"
+          className="overflow-visible"
         >
-          <Avatar
-            isBordered
-            showFallback
-            className="bg-transparent w-6 h-6 text-tiny"
-            src={
-              user && user.photoURL
-                ? user.photoURL
-                : "images/avatar-placeholder.jpg"
-            }
-          />
+          <Badge color="primary" content={5}><IoIosNotifications size={22} /></Badge>
         </Button>
       </DropdownTrigger>
 
       <DropdownMenu variant="faded" aria-label="User profile">
         <DropdownItem
-          key="profile"
-          showDivider
-          className="border-default cursor-default data-[hover=true]:bg-transparent data-[selectable=true]:focus:bg-transparent"
-          classNames={{ base: "bg-emerald" }}
-        >
-          <User
-            name={user && user.name}
-            description={
-              user && user.email ? user.email : `${user?.name}@utag.gh.org`
-            }
-            classNames={{
-              // base: "bg-danger p-4",
-              name: "font-semibold",
-              description: "text-default-500",
-            }}
-            avatarProps={{
-              size: "sm",
-              src:
-                user && user.photoURL
-                  ? user.photoURL
-                  : "images/avatar-placeholder.jpg",
-            }}
-          />
-        </DropdownItem>
-
-        <DropdownItem
           key="settings"
-          href={internalUrls.settings}
           shortcut="⌘S"
           description="Update your account info"
           //   startContent={}

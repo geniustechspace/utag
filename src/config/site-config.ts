@@ -1,29 +1,26 @@
 export const internalUrls = {
     home: "/",
-    auth: "/auth",
-    login: "/auth/login",
-    signup: "/auth/signup",
+    auth: "/accounts/auth",
+    signin: "/accounts/auth/signin",
+    signup: "/accounts/auth/signup",
+    forgotPassword: "/accounts/auth/forgot-password",
+    
+    settings: "/accounts/settings",
+
+    profile: "/accounts/signup",
 };
 
 /* eslint-disable prettier/prettier */
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-    name: "Next.js + NextUI",
+    name: "UTAG",
     description:
         "Make beautiful websites regardless of your design experience.",
     navItems: [
         {
             label: "Home",
             href: "/",
-        },
-        {
-            label: "Docs",
-            href: "/docs",
-        },
-        {
-            label: "Pricing",
-            href: "/pricing",
         },
         {
             label: "Blog",

@@ -8,12 +8,12 @@ import {
   ReactNode,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { User, onAuthStateChanged } from "firebase/auth";
-import { Modal, ModalContent } from "@nextui-org/modal";
-import { Spinner } from "@nextui-org/spinner";
+import { onAuthStateChanged } from "firebase/auth";
 
 import { internalUrls } from "@/config/site-config";
 import { auth } from "@/config/firebase-config";
+import { ElevatedLoading } from "@/components/loading";
+import { User, useUserModel } from "@/models/user-profile";
 
 interface AuthContextType {
   user: User | null;
@@ -25,14 +25,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { getUser } = useUserModel();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (_user) => {
+      if (_user) {
+        const user = await getUser(_user.uid);
+        setUser(user);
+      }
+
       setLoading(false);
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, []);
 
@@ -53,49 +57,33 @@ export const useAuth = (): AuthContextType => {
   return context;
 };
 
-export const useLoginRequired = (): AuthContextType => {
+export const useLoginRequired = (): void => {
   const { user, loading } = useAuth();
   const router = useRouter();
   const currentRoute = usePathname();
 
-  if (!loading && !user && !currentRoute.startsWith(internalUrls.auth)) {
-    router.replace(`${internalUrls.login}?redirect=${currentRoute}`); // Redirect to login page if not authenticated
-  }
-
-  return { user, loading };
+  useEffect(() => {
+    if (!loading && !user && !currentRoute.startsWith(internalUrls.auth)) {
+      router.replace(`${internalUrls.signin}?redirect=${currentRoute}`);
+    }
+  }, [loading, user, router, currentRoute]);
 };
 
-export const withLoginRequired = (Component: React.ComponentType) => {
-  const AuthenticatedComponent = (props: any) => {
+export const withLoginRequired = <P extends object>(
+  Component: React.ComponentType<P>,
+) => {
+  const WrappedComponent = (props: P) => {
+    useLoginRequired();
     const { user, loading } = useAuth();
-    const router = useRouter();
-    const pathname = usePathname();
-
-    useEffect(() => {
-      if (!loading && !user) {
-        router.push(`${internalUrls.login}?redirect=${pathname}`);
-      }
-    }, [user, loading, pathname, router]);
 
     if (loading || !user) {
-      return (
-        <Modal
-          backdrop="opaque"
-          defaultOpen={true}
-          hideCloseButton={true}
-          isDismissable={false}
-          placement="center"
-        >
-          <ModalContent className="flex max-w-[12em] justify-center p-5 align-middle">
-            <Spinner classNames={{ wrapper: "pt-2" }} />
-            <h3 className="mt-3 text-center font-semibold">Loading ...</h3>
-          </ModalContent>
-        </Modal>
-      );
+      return <ElevatedLoading />;
     }
 
     return <Component {...props} />;
   };
 
-  return AuthenticatedComponent;
+  WrappedComponent.displayName = `withLoginRequired(${Component.displayName || Component.name || "Component"})`;
+
+  return WrappedComponent;
 };

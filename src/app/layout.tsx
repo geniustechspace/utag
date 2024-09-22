@@ -1,5 +1,6 @@
 import "@/styles/globals.css";
 import { Metadata, Viewport } from "next";
+import NextLink from "next/link";
 import { Link } from "@nextui-org/link";
 import clsx from "clsx";
 
@@ -7,7 +8,6 @@ import { Providers } from "./providers";
 
 import { siteConfig } from "@/config/site-config";
 import { fontSans } from "@/config/fonts";
-import { Navbar } from "@/components/navbar";
 
 export const metadata: Metadata = {
   title: {
@@ -42,11 +42,8 @@ export default function RootLayout({
         )}
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
-          <div className="relative flex flex-col h-screen">
-            <Navbar />
-            <main className="max-w-screen-2xl mx-auto p-4 lg:p-6 min-h-screen">
-              {children}
-            </main>
+          <div className="relative flex flex-col min-h-screen justify-between">
+            {children}
             <footer className="w-full flex items-center justify-center py-3">
               <Link
                 isExternal

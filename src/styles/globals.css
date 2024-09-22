@@ -1,3 +1,55 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+    .card {
+        @apply bg-zinc-50 dark:bg-zinc-900 border-1 border-emerald-200 dark:border-default drop-shadow;
+    }
+
+    .swiper-button-next,
+    .swiper-button-prev {
+        @apply text-primary;
+    }
+}
+
+@layer utilities {
+    .bg-overlay {
+        position: absolute;
+        left: 0;
+        right: 0;
+        background-repeat: no-repeat;
+        background-size: cover;
+        @apply blur-sm;
+    }
+
+    .bg-img-defaulf {
+        background-image: url(/images/geniustechspace.jpg);
+    }
+
+    .bg-img-dark {
+        background-image: url(/images/timeflies.png);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        scrollbar-width: auto !important;
+        -ms-overflow-style: auto !important;
+        @apply block w-1 h-1 rounded-full;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        @apply bg-default rounded-full;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        @apply bg-primary rounded-full;
+    }
+
+    .custom-scrollbar.thumb-none::-webkit-scrollbar {
+        scroll-margin-bottom: 1px;
+    }
+
+    .custom-scrollbar.thumb-none::-webkit-scrollbar-thumb {
+        @apply bg-none bg-transparent;
+    }
+}
