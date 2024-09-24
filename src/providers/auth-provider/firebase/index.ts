@@ -74,6 +74,7 @@ export const loginWithGoogle = async (): Promise<User | unknown> => {
 
         return authResult.user;
     } catch (error) {
+        console.error(error)
         throw error;
     }
 };

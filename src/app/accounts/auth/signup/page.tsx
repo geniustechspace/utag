@@ -1,8 +1,8 @@
 "use client";
 
-import { User as FirebaseUser } from "firebase/auth";
+import { User as AuthUser } from "firebase/auth";
 import { internalUrls } from "@/config/site-config";
-import { User, useUserModel } from "@/models/user-profile";
+import { User, useUserModel } from "@/providers/models/user-profile";
 import { handleAuthErrors, signUpWithEmail } from "@/providers/auth-provider";
 import { Button } from "@nextui-org/button";
 import { Input } from "@nextui-org/input";
@@ -38,19 +38,15 @@ export default function SignupPage() {
     }
 
     try {
-      const user = (await signUpWithEmail({ email, password })) as FirebaseUser;
-      const slug = name.split(" ").join("-");
-      const user_id = user.uid;
-      const dateJoined = new Date();
+      const _user = (await signUpWithEmail({ email, password })) as AuthUser;
+      const user_id = _user.uid;
       await createUser({
         user_id,
-        name,
-        email,
-        password,
-        role,
-        slug,
-        dateJoined,
-        photoURL: user.photoURL || undefined,
+        name: _user.displayName!,
+        email: _user.email!,
+        password: "",
+        role: "Member",
+        photoURL: _user.photoURL || undefined,
       });
       router.push(redirectUrl || internalUrls.home);
     } catch (error) {

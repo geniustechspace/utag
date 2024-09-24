@@ -31,7 +31,7 @@ export const UserProfile = () => {
       placement="bottom-end"
       offset={14}
       shadow="md"
-      closeOnSelect={false}
+      closeOnSelect={true}
     >
       <DropdownTrigger>
         <Button

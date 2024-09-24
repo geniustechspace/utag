@@ -7,7 +7,7 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { ThemeProviderProps } from "next-themes/dist/types";
 
 import { AuthProvider } from "@/providers/auth-provider";
-import { UserProvider } from "@/models/user-profile";
+import { UserProvider } from "@/providers/models/user-profile";
 
 export interface ProvidersProps {
   children: React.ReactNode;

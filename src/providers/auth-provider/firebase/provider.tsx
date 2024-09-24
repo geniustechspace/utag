@@ -8,14 +8,15 @@ import {
   ReactNode,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, User as AuthUser} from "firebase/auth";
 
 import { internalUrls } from "@/config/site-config";
 import { auth } from "@/config/firebase-config";
 import { ElevatedLoading } from "@/components/loading";
-import { User, useUserModel } from "@/models/user-profile";
+import { User, useUserModel } from "@/providers/models/user-profile";
 
 interface AuthContextType {
+  authUser: AuthUser | null;
   user: User | null;
   loading: boolean;
 }
@@ -23,6 +24,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [authUser, seAuthUser] = useState<AuthUser | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { getUser } = useUserModel();
@@ -30,7 +32,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (_user) => {
       if (_user) {
+        seAuthUser(_user)
         const user = await getUser(_user.uid);
+        console.log(user)
         setUser(user);
       }
 
@@ -41,7 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{authUser, user, loading }}>
       {children}
     </AuthContext.Provider>
   );
@@ -58,15 +62,15 @@ export const useAuth = (): AuthContextType => {
 };
 
 export const useLoginRequired = (): void => {
-  const { user, loading } = useAuth();
+  const { authUser, loading } = useAuth();
   const router = useRouter();
   const currentRoute = usePathname();
 
   useEffect(() => {
-    if (!loading && !user && !currentRoute.startsWith(internalUrls.auth)) {
+    if (!loading && !authUser && !currentRoute.startsWith(internalUrls.auth)) {
       router.replace(`${internalUrls.signin}?redirect=${currentRoute}`);
     }
-  }, [loading, user, router, currentRoute]);
+  }, [loading, authUser, router, currentRoute]);
 };
 
 export const withLoginRequired = <P extends object>(
@@ -74,9 +78,9 @@ export const withLoginRequired = <P extends object>(
 ) => {
   const WrappedComponent = (props: P) => {
     useLoginRequired();
-    const { user, loading } = useAuth();
+    const { authUser, loading } = useAuth();
 
-    if (loading || !user) {
+    if (loading || !authUser) {
       return <ElevatedLoading />;
     }
 

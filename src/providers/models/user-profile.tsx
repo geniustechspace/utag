@@ -19,7 +19,7 @@ export interface User {
   user_id: string;
   name: string;
   email: string;
-  password: string;
+  password?: string;
   role:
     | "Member"
     | "Secretary"
@@ -31,8 +31,8 @@ export interface User {
   contact?: string;
   address?: string;
   institution?: string;
-  dateJoined: Date | any;
-  slug: string;
+  dateJoined?: Date | any;
+  slug?: string;
 }
 
 interface UserModel {
@@ -56,7 +56,11 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Create user with error handling
   const createUser = async (user: User) => {
+    const _user = await getUser(user.user_id);
+    if (_user) return;
     try {
+      user.slug = user.name.split(" ").join("-");
+      user.dateJoined = new Date();
       const userRef = doc(db, "Users", user.user_id);
       const userData: Partial<User> = { ...user };
 

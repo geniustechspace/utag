@@ -1,7 +1,9 @@
 "use client";
 
+import { User as AuthUser } from "firebase/auth";
 import { Divider } from "@/components/utils";
 import { handleAuthErrors, loginWithGoogle } from "@/providers/auth-provider";
+import { useUserModel } from "@/providers/models/user-profile";
 import { Button } from "@nextui-org/button";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReactNode, useState } from "react";
@@ -10,11 +12,22 @@ import { FcGoogle } from "react-icons/fc";
 export default function AuthLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { createUser } = useUserModel();
+
   const [errors, setErrors] = useState<string>("");
 
   const handleGoogleAuth = async () => {
     try {
-      await loginWithGoogle()
+      const _user = (await loginWithGoogle()) as AuthUser;
+      const user_id = _user.uid;
+      await createUser({
+        user_id,
+        name: _user.displayName!,
+        email: _user.email!,
+        password: "",
+        role: "Member",
+        photoURL: _user.photoURL || undefined,
+      });
       router.push(searchParams.get("redirect") || "/");
     } catch (error) {
       handleAuthErrors(error, setErrors);
