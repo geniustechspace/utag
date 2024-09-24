@@ -29,7 +29,7 @@ export const UserProfile = () => {
     <Dropdown
       showArrow
       placement="bottom-end"
-      offset={14}
+      offset={15}
       shadow="md"
       closeOnSelect={true}
     >

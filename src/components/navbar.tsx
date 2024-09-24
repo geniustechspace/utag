@@ -33,7 +33,7 @@ export const Navbar = () => {
         </NavbarBrand>
       </NavbarContent>
 
-      <NavbarContent className="flex gap-4 justify-start ml-2">
+      {/* <NavbarContent className="flex gap-4 justify-start ml-2">
         {siteConfig.navItems.map((item) => (
           <NavbarItem key={item.href}>
             <NextLink
@@ -48,7 +48,7 @@ export const Navbar = () => {
             </NextLink>
           </NavbarItem>
         ))}
-      </NavbarContent>
+      </NavbarContent> */}
 
       <NavbarContent className="" justify="end">
         <NotificationDropdown />

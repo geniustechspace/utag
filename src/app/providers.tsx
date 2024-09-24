@@ -7,7 +7,7 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { ThemeProviderProps } from "next-themes/dist/types";
 
 import { AuthProvider } from "@/providers/auth-provider";
-import { UserProvider } from "@/providers/models/user-profile";
+import { DocumentProvider, UserProvider } from "@/providers/models";
 
 export interface ProvidersProps {
   children: React.ReactNode;
@@ -21,7 +21,9 @@ export function Providers({ children, themeProps }: ProvidersProps) {
     <NextUIProvider navigate={router.push}>
       <NextThemesProvider {...themeProps}>
         <UserProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <DocumentProvider>{children}</DocumentProvider>
+          </AuthProvider>
         </UserProvider>
       </NextThemesProvider>
     </NextUIProvider>

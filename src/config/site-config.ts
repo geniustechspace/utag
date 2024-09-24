@@ -4,10 +4,14 @@ export const internalUrls = {
     signin: "/accounts/auth/signin",
     signup: "/accounts/auth/signup",
     forgotPassword: "/accounts/auth/forgot-password",
-    
     settings: "/accounts/settings",
 
-    profile: "/accounts/signup",
+    qna: "/qna",
+    meetings: "/meetings",
+    documents: "/documents",
+    promotions: "/promotions",
+    notifications: "/notifications",
+    constitution: "/constitution",
 };
 
 /* eslint-disable prettier/prettier */
@@ -33,36 +37,32 @@ export const siteConfig = {
     ],
     navMenuItems: [
         {
-            label: "Profile",
-            href: "/profile",
+            label: "Overview",
+            href: internalUrls.home,
         },
         {
-            label: "Dashboard",
-            href: "/dashboard",
+            label: "Questions & Discussions",
+            href: internalUrls.qna,
         },
         {
-            label: "Projects",
-            href: "/projects",
+            label: "Meetings",
+            href: internalUrls.meetings,
         },
         {
-            label: "Team",
-            href: "/team",
+            label: "Documents",
+            href: internalUrls.documents,
         },
         {
-            label: "Calendar",
-            href: "/calendar",
+            label: "Promotions",
+            href: internalUrls.promotions,
         },
         {
-            label: "Settings",
-            href: "/settings",
+            label: "Notifications",
+            href: internalUrls.notifications,
         },
         {
-            label: "Help & Feedback",
-            href: "/help-feedback",
-        },
-        {
-            label: "Logout",
-            href: "/logout",
+            label: "Constitution",
+            href: internalUrls.constitution,
         },
     ],
     links: {
