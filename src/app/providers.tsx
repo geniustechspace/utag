@@ -7,7 +7,14 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { ThemeProviderProps } from "next-themes/dist/types";
 
 import { AuthProvider } from "@/providers/auth-provider";
-import { DocumentProvider, UserProvider } from "@/providers/models";
+import {
+  DocumentProvider,
+  ElectionProvider,
+  FeedbackProvider,
+  MeetingProvider,
+  PromotionProvider,
+  UserProvider,
+} from "@/providers/models";
 
 export interface ProvidersProps {
   children: React.ReactNode;
@@ -22,7 +29,15 @@ export function Providers({ children, themeProps }: ProvidersProps) {
       <NextThemesProvider {...themeProps}>
         <UserProvider>
           <AuthProvider>
-            <DocumentProvider>{children}</DocumentProvider>
+            <DocumentProvider>
+              <MeetingProvider>
+                <PromotionProvider>
+                  <FeedbackProvider>
+                    <ElectionProvider>{children}</ElectionProvider>
+                  </FeedbackProvider>
+                </PromotionProvider>
+              </MeetingProvider>
+            </DocumentProvider>
           </AuthProvider>
         </UserProvider>
       </NextThemesProvider>

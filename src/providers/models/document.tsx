@@ -205,6 +205,17 @@ export const DocumentProvider = ({
       console.log("Documents updated:", updatedDocuments);
     });
 
+    // Prepopulate the cache on mount
+    const fetchDocuments = async () => {
+      try {
+        await getAllDocuments();
+      } catch (error) {
+        console.error("Error during initial feedback fetch:", error);
+      }
+    };
+
+    fetchDocuments();
+
     return () => {
       unsubscribe(); // Cleanup on unmount
     };

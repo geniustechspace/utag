@@ -28,9 +28,9 @@ export interface Feedback {
     | "Treasurer"
     | "Vice President"
     | "Electoral Commissioner";
-  response?: Feedback[]; // Array of feedback (for nested responses)
+  response?: string[]; // Array of feedback (for nested responses)
   read_status?: string[]; // Array of user_ids who have read the feedback
-  submitted_date: Date | any;
+  submitted_date?: Date | any;
 }
 
 interface FeedbackModel {
@@ -39,6 +39,7 @@ interface FeedbackModel {
     feedback_id: string,
     feedbackData: Partial<Feedback>,
   ) => Promise<void>;
+  addFeedbackResponse: (feedback_id: string, response: string) => Promise<void>;
   deleteFeedback: (feedback_id: string) => Promise<void>;
   getFeedback: (feedback_id: string) => Promise<Feedback | null>;
   getAllFeedbacks: (fetchLimit?: number) => Promise<Feedback[]>;
@@ -66,6 +67,10 @@ export const FeedbackProvider = ({
   // Create feedback with error handling
   const createFeedback = async (feedback: Feedback) => {
     try {
+      feedback.submitted_date = new Date();
+      feedback._id = `${feedback.subject} @ ${feedback.submitted_date}`
+        .split(" ")
+        .join("");
       const feedbackRef = doc(db, "Feedbacks", feedback._id);
       const feedbackData: Partial<Feedback> = { ...feedback };
 
@@ -100,6 +105,35 @@ export const FeedbackProvider = ({
     } catch (error) {
       console.error("Error updating feedback:", error);
       throw new Error("Unable to update feedback.");
+    }
+  };
+
+  // Add feedback response with error handling
+  const addFeedbackResponse = async (feedback_id: string, response: string) => {
+    try {
+      const feedback = await getFeedback(feedback_id);
+
+      if (!feedback) {
+        console.error(`Feedback with id ${feedback_id} not found`);
+        return;
+      }
+
+      // Update response array
+      const updatedResponse = feedback.response
+        ? [...feedback.response, response]
+        : [response];
+
+      // Update only the response field in Firestore
+      await updateFeedback(feedback_id, { response: updatedResponse });
+
+      // Update cache with new response
+      setFeedbackCache((prev) => ({
+        ...prev,
+        [feedback_id]: { ...prev[feedback_id], response: updatedResponse },
+      }));
+    } catch (error) {
+      console.error("Error adding feedback response:", error);
+      throw new Error("Unable to add feedback response.");
     }
   };
 
@@ -211,6 +245,17 @@ export const FeedbackProvider = ({
       console.log("Feedbacks updated:", updatedFeedbacks);
     });
 
+    // Prepopulate the cache on mount
+    const fetchFeedbacks = async () => {
+      try {
+        await getAllFeedbacks();
+      } catch (error) {
+        console.error("Error during initial feedback fetch:", error);
+      }
+    };
+
+    fetchFeedbacks();
+
     return () => {
       unsubscribe(); // Cleanup on unmount
     };
@@ -221,6 +266,7 @@ export const FeedbackProvider = ({
       value={{
         createFeedback,
         updateFeedback,
+        addFeedbackResponse,
         deleteFeedback,
         getFeedback,
         getAllFeedbacks,

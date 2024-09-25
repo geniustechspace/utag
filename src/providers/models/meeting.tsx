@@ -18,11 +18,11 @@ export interface Meeting {
   meeting_id: string;
   title: string;
   agenda: string;
-  date: Date | any;
-  time: string;
-  location: string;
+  date?: Date | any;
+  time?: string;
+  location?: string;
   minutes?: string;
-  participants: string[]; // Array of participant user IDs
+  participants?: string[]; // Array of participant user IDs
 }
 
 interface MeetingModel {
@@ -197,6 +197,17 @@ export const MeetingProvider = ({
     const unsubscribe = subscribeToMeetingUpdates((updatedMeetings) => {
       console.log("Meetings updated:", updatedMeetings);
     });
+
+    // Prepopulate the cache on mount
+    const fetchMeetings = async () => {
+      try {
+        await getAllMeetings();
+      } catch (error) {
+        console.error("Error during initial fetch:", error);
+      }
+    };
+
+    fetchMeetings();
 
     return () => {
       unsubscribe(); // Cleanup on unmount

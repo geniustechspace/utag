@@ -220,6 +220,17 @@ export const PromotionProvider = ({
       console.log("Promotions updated:", updatedPromotions);
     });
 
+    // Prepopulate the cache on mount
+    const fetchPromotions = async () => {
+      try {
+        await getAllPromotions();
+      } catch (error) {
+        console.error("Error during initial fetch:", error);
+      }
+    };
+
+    fetchPromotions();
+
     return () => {
       unsubscribe(); // Cleanup on unmount
     };

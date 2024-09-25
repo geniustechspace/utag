@@ -6,6 +6,8 @@ export const Sidebar = ({
 }: {
   items: { label: string; href: string }[];
 }) => {
+  if (!items || items.length < 1) return null;
+
   return (
     <aside className="hidden md:inline w-64 h-fit sticky sticky-top top-[4.1rem] border-r border-default">
       <div className="mx-3 mt-2 flex flex-col gap-2">

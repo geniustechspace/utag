@@ -1,9 +1,7 @@
-import { title } from "@/components/primitives";
-
 export default function QnAPage() {
   return (
-    <div>
-      <h1 className={title()}>QnAPage</h1>
+    <div className="flex items-center justify-center h-32">
+      <h1 className="font-bold">Select a topic for details</h1>
     </div>
   );
 }

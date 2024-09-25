@@ -189,6 +189,17 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       console.log("Users updated:", updatedUsers);
     });
 
+    // Prepopulate the cache on mount
+    const fetchUsers = async () => {
+      try {
+        await getAllUsers();
+      } catch (error) {
+        console.error("Error during initial fetch:", error);
+      }
+    };
+
+    fetchUsers();
+
     return () => {
       unsubscribe(); // Cleanup on unmount
     };

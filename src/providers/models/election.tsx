@@ -264,6 +264,17 @@ export const ElectionProvider = ({
       console.log("Elections updated:", updatedElections);
     });
 
+    // Prepopulate the cache on mount
+    const fetchElections = async () => {
+      try {
+        await getAllElections();
+      } catch (error) {
+        console.error("Error during initial feedback fetch:", error);
+      }
+    };
+
+    fetchElections();
+
     return () => {
       unsubscribe(); // Cleanup on unmount
     };

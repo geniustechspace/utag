@@ -210,6 +210,17 @@ export const BRARequestProvider = ({
       console.log("BRA requests updated:", updatedBRARequests);
     });
 
+    // Prepopulate the cache on mount
+    const fetchBRARequests = async () => {
+      try {
+        await getAllBRARequests();
+      } catch (error) {
+        console.error("Error during initial feedback fetch:", error);
+      }
+    };
+
+    fetchBRARequests();
+
     return () => {
       unsubscribe(); // Cleanup on unmount
     };
