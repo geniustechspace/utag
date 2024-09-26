@@ -1,4 +1,3 @@
-import { db } from "@/config/firebase-config";
 import {
   doc,
   setDoc,
@@ -13,6 +12,8 @@ import {
   limit,
 } from "firebase/firestore";
 import { useState, useEffect, useContext, createContext, useMemo } from "react";
+
+import { db } from "@/config/firebase-config";
 
 export interface BRARequest {
   bra_id: string;
@@ -63,6 +64,7 @@ export const BRARequestProvider = ({
       // Remove undefined fields
       Object.keys(braRequestData).forEach((key) => {
         const typedKey = key as keyof BRARequest;
+
         if (braRequestData[typedKey] === undefined) {
           delete braRequestData[typedKey];
         }
@@ -86,6 +88,7 @@ export const BRARequestProvider = ({
   ) => {
     try {
       const braRequestRef = doc(db, "bra_requests", bra_id);
+
       await updateDoc(braRequestRef, braRequestData);
       setBRARequestCache((prev) => ({
         ...prev,
@@ -101,10 +104,13 @@ export const BRARequestProvider = ({
   const deleteBRARequest = async (bra_id: string) => {
     try {
       const braRequestRef = doc(db, "bra_requests", bra_id);
+
       await deleteDoc(braRequestRef);
       setBRARequestCache((prev) => {
         const updatedCache = { ...prev };
+
         delete updatedCache[bra_id];
+
         return updatedCache;
       });
     } catch (error) {
@@ -126,6 +132,7 @@ export const BRARequestProvider = ({
 
       if (braRequestData)
         setBRARequestCache((prev) => ({ ...prev, [bra_id]: braRequestData }));
+
       return braRequestData;
     } catch (error) {
       console.error("Error fetching BRA request:", error);
@@ -142,6 +149,7 @@ export const BRARequestProvider = ({
       const braRequests = braRequestSnapshot.docs.map(
         (doc) => doc.data() as BRARequest,
       );
+
       setBRARequestCache((prev) =>
         braRequests.reduce(
           (cache, braRequest) => ({
@@ -151,6 +159,7 @@ export const BRARequestProvider = ({
           prev,
         ),
       );
+
       return braRequests;
     } catch (error) {
       console.error("Error fetching BRA requests:", error);
@@ -179,6 +188,7 @@ export const BRARequestProvider = ({
       const braRequests = filteredSnapshot.docs.map(
         (doc) => doc.data() as BRARequest,
       );
+
       return braRequests;
     } catch (error) {
       console.error("Error filtering BRA requests:", error);
@@ -192,6 +202,7 @@ export const BRARequestProvider = ({
   ) => {
     return onSnapshot(collection(db, "bra_requests"), (snapshot) => {
       const braRequests = snapshot.docs.map((doc) => doc.data() as BRARequest);
+
       setBRARequestCache((prev) =>
         braRequests.reduce(
           (cache, braRequest) => ({
@@ -251,5 +262,6 @@ export const useBRARequestModel = () => {
     throw new Error(
       "useBRARequestModel must be used within a BRARequestProvider",
     );
+
   return context;
 };

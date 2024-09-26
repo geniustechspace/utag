@@ -7,7 +7,7 @@ import { Card } from "@nextui-org/card";
 import { Divider } from "@nextui-org/divider";
 import { usePathname, useRouter } from "next/navigation";
 import { FaPaperclip, FaUserCircle } from "react-icons/fa";
-import { Input, Textarea } from "@nextui-org/input";
+import { Textarea } from "@nextui-org/input";
 import {
   Modal,
   ModalContent,
@@ -15,6 +15,7 @@ import {
   ModalBody,
   useDisclosure,
 } from "@nextui-org/modal";
+
 import {
   Feedback,
   useFeedbackModel,
@@ -25,7 +26,8 @@ import {
 export default function QnADetailsPage() {
   const router = useRouter();
   const pathname = usePathname();
-  const { feedbackCache, getFeedback, deleteFeedback, addFeedbackResponse } = useFeedbackModel();
+  const { feedbackCache, getFeedback, deleteFeedback, addFeedbackResponse } =
+    useFeedbackModel();
   const { getUser } = useUserModel();
 
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -41,6 +43,7 @@ export default function QnADetailsPage() {
       if (!feedback_id) return;
       try {
         const _feedback = await getFeedback(feedback_id);
+
         setFeedback(_feedback);
       } catch (err) {
         console.error("Error fetching feedback:", err);
@@ -51,6 +54,7 @@ export default function QnADetailsPage() {
       if (!feedback?.user_id) return;
       try {
         const _user = await getUser(feedback?.user_id);
+
         setUser(_user);
       } catch (err) {
         console.error("Error fetching user:", err);
@@ -69,7 +73,7 @@ export default function QnADetailsPage() {
       await addFeedbackResponse(feedback._id, responseMessage);
       setResponseMessage("");
       onClose();
-      router.refresh()
+      router.refresh();
       // Optionally refetch the feedback to update the responses
     } catch (error) {
       console.error("Error adding response:", error);
@@ -184,6 +188,7 @@ export default function QnADetailsPage() {
           </ModalHeader>
           <ModalBody>
             <Textarea
+              fullWidth
               label="Response"
               labelPlacement="outside"
               radius="sm"
@@ -191,8 +196,6 @@ export default function QnADetailsPage() {
               variant="bordered"
               placeholder="Enter your response..."
               value={responseMessage}
-              onChange={(e) => setResponseMessage(e.target.value)}
-              fullWidth
               minRows={4}
               classNames={{
                 mainWrapper: "w-full",
@@ -200,13 +203,14 @@ export default function QnADetailsPage() {
                 inputWrapper:
                   "border-primary-500 data-[hover=true]:border-primary font-bold",
               }}
+              onChange={(e) => setResponseMessage(e.target.value)}
             />
             <Button
               radius="sm"
               color="primary"
               variant="solid"
-              onPress={handleResponseSubmit}
               className="mt-4"
+              onPress={handleResponseSubmit}
             >
               Submit Response
             </Button>

@@ -1,16 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, useUserModel } from "@/providers/models/user-profile";
-import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@nextui-org/button";
 import { Input } from "@nextui-org/input";
+
+import { User, useUserModel } from "@/providers/models/user-profile";
+import { useAuth } from "@/providers/auth-provider";
 import { ElevatedLoading } from "@/components/loading";
 import { EditableField } from "@/components/forms/form-inputs";
 
-
 export default function SettingsPage() {
-  const { getUser, updateUser } = useUserModel();
+  const { updateUser } = useUserModel();
   const { user: currentUser } = useAuth();
   const [editMode, setEditMode] = useState<Record<string, boolean>>({});
   const [user, setUser] = useState<User | null>(null); // Local user state
@@ -46,39 +46,40 @@ export default function SettingsPage() {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Editable fields */}
       <div className="mb-2">
-      <EditableField
-        label="Name"
-        value={user.name}
-        onChange={(value) => handleFieldChange("name", value)}
-        isEditable={editMode["name"]}
-        toggleEdit={() => handleEditToggle("name")}
-      /></div>
+        <EditableField
+          label="Name"
+          value={user.name}
+          isEditable={editMode["name"]}
+          toggleEdit={() => handleEditToggle("name")}
+          onChange={(value) => handleFieldChange("name", value)}
+        />
+      </div>
 
       {/* Non-editable fields */}
       <Input
+        disabled
         label={<h2 className="font-semibold">Email</h2>}
         labelPlacement="outside"
         value={user.email}
-        disabled
         size="md"
         radius="sm"
-        classNames={{mainWrapper:"mt-2 "}}
+        classNames={{ mainWrapper: "mt-2 " }}
       />
 
       <Input
+        disabled
         label={<h2 className="font-semibold">Role</h2>}
         labelPlacement="outside"
         value={user.role}
-        disabled
         size="md"
         radius="sm"
       />
 
       <Input
+        disabled
         label={<h2 className="font-semibold">Date Joined</h2>}
         labelPlacement="outside"
         value={user.dateJoined.toDate().toDateString() as unknown as string}
-        disabled
         size="md"
         radius="sm"
       />
@@ -87,41 +88,41 @@ export default function SettingsPage() {
       <EditableField
         label="Department"
         value={user.department}
-        onChange={(value) => handleFieldChange("department", value)}
         isEditable={editMode["department"]}
         toggleEdit={() => handleEditToggle("department")}
+        onChange={(value) => handleFieldChange("department", value)}
       />
 
       <EditableField
         label="Contact"
         value={user.contact}
-        onChange={(value) => handleFieldChange("contact", value)}
         isEditable={editMode["contact"]}
         toggleEdit={() => handleEditToggle("contact")}
+        onChange={(value) => handleFieldChange("contact", value)}
       />
 
       <EditableField
         label="Address"
         value={user.address}
-        onChange={(value) => handleFieldChange("address", value)}
         isEditable={editMode["address"]}
         toggleEdit={() => handleEditToggle("address")}
+        onChange={(value) => handleFieldChange("address", value)}
       />
 
       <EditableField
         label="Institution"
         value={user.institution}
-        onChange={(value) => handleFieldChange("institution", value)}
         isEditable={editMode["institution"]}
         toggleEdit={() => handleEditToggle("institution")}
+        onChange={(value) => handleFieldChange("institution", value)}
       />
 
       <Button
         isDisabled={!isModified}
-        onClick={handleSave}
         className="col-span-full mt-4"
         color="primary"
         size="md"
+        onClick={handleSave}
       >
         Save Changes
       </Button>

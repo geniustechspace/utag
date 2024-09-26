@@ -17,7 +17,6 @@ export const ElevatedLoading = () => (
   </Modal>
 );
 
-
 export const ComponentLoading = ({ message }: { message?: string }) => (
   <Card className="">
     <CardBody className="mx-auto">
@@ -28,4 +27,3 @@ export const ComponentLoading = ({ message }: { message?: string }) => (
     </CardBody>
   </Card>
 );
-

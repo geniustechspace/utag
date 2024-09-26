@@ -1,20 +1,18 @@
 "use client";
 
-import { internalUrls } from "@/config/site-config";
-import {
-  handleAuthErrors,
-  loginWithEmail,
-} from "@/providers/auth-provider";
 import { Button } from "@nextui-org/button";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 import NextLink from "next/link";
 import { Input } from "@nextui-org/input";
 
+import { handleAuthErrors, loginWithEmail } from "@/providers/auth-provider";
+import { internalUrls } from "@/config/site-config";
+
 export default function SignInPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const redirectUrl = searchParams.get("redirect");
 
   const [email, setEmail] = useState<string>("");
@@ -26,9 +24,11 @@ export default function SignInPage() {
     try {
       await loginWithEmail({ email, password });
       router.push(redirectUrl || internalUrls.home);
+
       return;
     } catch (error) {
       handleAuthErrors(error, setErrors);
+
       return;
     }
   };
@@ -48,7 +48,6 @@ export default function SignInPage() {
             labelPlacement="outside"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
             radius="sm"
             color="primary"
             variant="bordered"
@@ -58,6 +57,7 @@ export default function SignInPage() {
               inputWrapper:
                 "border-primary-500 data-[hover=true]:border-primary font-bold",
             }}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
 
@@ -67,7 +67,6 @@ export default function SignInPage() {
             labelPlacement="outside"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
             radius="sm"
             color="primary"
             variant="bordered"
@@ -77,6 +76,7 @@ export default function SignInPage() {
               inputWrapper:
                 "border-primary-500 data-[hover=true]:border-primary font-bold",
             }}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </div>
 

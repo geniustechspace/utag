@@ -1,14 +1,14 @@
 "use client";
 
+import { useState, useMemo } from "react";
+
 import { internalUrls } from "@/config/site-config";
 import { withLoginRequired } from "@/providers/auth-provider/firebase/provider";
 import { Sidebar } from "@/components/sidebar";
 import { FeedbackProvider, useFeedbackModel } from "@/providers/models";
-import { useState, useMemo } from "react";
 import { CreateFeedbackForm } from "@/components/forms/feedback-form";
 
 const QnAPageLayout = ({ children }: { children: React.ReactNode }) => {
-
   const { feedbackCache } = useFeedbackModel();
   const [sidenavItems, setSidenavItems] = useState<
     { label: string; href: string }[]
@@ -20,6 +20,7 @@ const QnAPageLayout = ({ children }: { children: React.ReactNode }) => {
       label: feedback.subject,
       href: `${internalUrls.qna}/${feedback._id}`,
     }));
+
     setSidenavItems(items);
   }, [feedbackCache]);
 

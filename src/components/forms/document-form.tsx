@@ -2,7 +2,7 @@
 
 import NextLink from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Input, Textarea } from "@nextui-org/input";
+import { Input } from "@nextui-org/input";
 import { Button } from "@nextui-org/button";
 import {
   Modal,
@@ -11,23 +11,25 @@ import {
   ModalBody,
   useDisclosure,
 } from "@nextui-org/modal";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { FiArrowLeftCircle, FiPlus } from "react-icons/fi";
+import { usePathname, useRouter } from "next/navigation";
+
 import { Document, useDocumentModel } from "@/providers/models";
 import { useAuth } from "@/providers/auth-provider";
 import { storage } from "@/config/firebase-config";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { FiArrowLeftCircle, FiPlus } from "react-icons/fi";
 import { internalUrls } from "@/config/site-config";
-import { usePathname } from "next/navigation";
 
 export const CreateDocumentForm = () => {
   const pathname = usePathname();
+  const router = useRouter();
 
   const { user } = useAuth();
   const { createDocument } = useDocumentModel(); // from your DocumentProvider
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 
   const [formData, setFormData] = useState<Partial<Document>>({
-    uploader: user?.name,
+    uploader_id: user?.user_id,
   });
   const [file, setFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
@@ -44,6 +46,7 @@ export const CreateDocumentForm = () => {
       if (!document_id) return; // Ensure document_id is available
       try {
         const _document = await getDocument(document_id);
+
         setDocument(_document);
       } catch (err) {
         console.error("Error fetching document:", err);
@@ -55,11 +58,13 @@ export const CreateDocumentForm = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const _files = e.target.files;
+
     if (_files && _files[0]) {
       const fileName = _files[0].name;
       const fileType = fileName.split(".").pop() || ""; // Get file extension
@@ -102,19 +107,23 @@ export const CreateDocumentForm = () => {
     if (
       !formData.document_title ||
       !formData.document_type ||
-      !formData.uploader
+      !formData.uploader_id
     ) {
       alert("All fields are required");
+
       return;
     }
+    // return
 
     if (!file) {
       setErrors("No file selected");
+
       return;
     }
 
     try {
       const fileUrl = await uploadImage(file);
+
       await createDocument({
         ...(formData as Document),
         document_id: `${formData.document_title}@${new Date().toISOString()}`
@@ -126,6 +135,7 @@ export const CreateDocumentForm = () => {
       // alert("Document added successfully!");
       onClose(); // Close modal after submission
       setFormData({}); // Reset form
+      router.refresh();
     } catch (error) {
       console.error("Error creating document:", error);
     }
@@ -134,24 +144,22 @@ export const CreateDocumentForm = () => {
   return (
     <>
       <div className="flex justify-between mb-6">
+        <Button
+          as={NextLink}
+          href={internalUrls.home}
+          size="sm"
+          radius="sm"
+          color="primary"
+          variant="flat"
+          startContent={<FiArrowLeftCircle size={18} />}
+          className="font-bold"
+        >
+          Back
+        </Button>
         {pathname === internalUrls.documents ? (
           <h6 className="font-bold">Documents</h6>
         ) : (
-          <>
-            <Button
-              as={NextLink}
-              href={internalUrls.documents}
-              size="sm"
-              radius="sm"
-              color="primary"
-              variant="flat"
-              startContent={<FiArrowLeftCircle size={18} />}
-              className="font-bold"
-            >
-              Back
-            </Button>
-            <h6 className="font-bold">{document?.document_title}</h6>
-          </>
+          <h6 className="font-bold">{document?.document_title}</h6>
         )}
         <Button
           size="sm"
@@ -173,7 +181,7 @@ export const CreateDocumentForm = () => {
                 Add Document
               </ModalHeader>
               <ModalBody>
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form className="space-y-6" onSubmit={handleSubmit}>
                   {/* Document Title */}
                   <Input
                     required
@@ -181,7 +189,6 @@ export const CreateDocumentForm = () => {
                     name="document_title"
                     placeholder="Enter document title"
                     value={formData.document_title}
-                    onChange={handleInputChange}
                     radius="sm"
                     color="primary"
                     variant="underlined"
@@ -189,6 +196,7 @@ export const CreateDocumentForm = () => {
                       inputWrapper:
                         "border-primary-500 data-[hover=true]:border-primary font-bold",
                     }}
+                    onChange={handleInputChange}
                   />
 
                   {/* Upload File */}
@@ -197,7 +205,6 @@ export const CreateDocumentForm = () => {
                     name="document_title"
                     accept=".pdf,.docx"
                     type="file"
-                    onChange={handleFileChange}
                     size="lg"
                     radius="sm"
                     color="primary"
@@ -208,6 +215,7 @@ export const CreateDocumentForm = () => {
                       inputWrapper:
                         "h-32 border-primary-500 data-[hover=true]:border-primary font-bold",
                     }}
+                    onChange={handleFileChange}
                   />
 
                   {/* Submit Button */}

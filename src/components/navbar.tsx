@@ -4,19 +4,16 @@ import {
   NavbarMenu,
   NavbarMenuToggle,
   NavbarBrand,
-  NavbarItem,
   NavbarMenuItem,
 } from "@nextui-org/navbar";
 import { Button } from "@nextui-org/button";
-import { Link } from "@nextui-org/link";
-import { link as linkStyles } from "@nextui-org/theme";
 import NextLink from "next/link";
-import clsx from "clsx";
 
-import { siteConfig } from "@/config/site-config";
-import { Logo, UTAGLogo } from "@/components/icons";
 import { UserProfile } from "./user-profile";
 import { NotificationDropdown } from "./notification";
+
+import { siteConfig } from "@/config/site-config";
+import { UTAGLogo } from "@/components/icons";
 
 export const Navbar = () => {
   return (

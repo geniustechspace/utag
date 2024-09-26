@@ -1,9 +1,6 @@
 "use client";
 
 import NextLink from "next/link";
-import { internalUrls } from "@/config/site-config";
-import { useAuth } from "@/providers/auth-provider";
-import { Meeting, useMeetingModel, useUserModel } from "@/providers/models";
 import { Button } from "@nextui-org/button";
 import {
   Dropdown,
@@ -19,9 +16,13 @@ import {
   ModalBody,
   useDisclosure,
 } from "@nextui-org/modal";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState, useMemo, Key, useEffect } from "react";
 import { FiArrowLeftCircle, FiPlus } from "react-icons/fi";
+
+import { Meeting, useMeetingModel, useUserModel } from "@/providers/models";
+import { useAuth } from "@/providers/auth-provider";
+import { internalUrls } from "@/config/site-config";
 
 const initialMeetingForm = {
   meeting_id: "",
@@ -63,6 +64,7 @@ export const CreateMeetingForm = () => {
       if (!meeting_id) return; // Ensure meeting_id is available
       try {
         const _feedback = await getMeeting(meeting_id);
+
         setMeeting(_feedback);
       } catch (err) {
         console.error("Error fetching feedback:", err);
@@ -75,8 +77,7 @@ export const CreateMeetingForm = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -109,7 +110,6 @@ export const CreateMeetingForm = () => {
       alert("Failed to create meeting.");
     }
   };
-
 
   return (
     <>
@@ -148,9 +148,9 @@ export const CreateMeetingForm = () => {
       <Modal
         size="2xl"
         isOpen={isOpen}
-        onOpenChange={onOpenChange}
         isDismissable={false}
         isKeyboardDismissDisabled={true}
+        onOpenChange={onOpenChange}
       >
         <ModalContent className="border-1 border-primary">
           {(onClose) => (
@@ -160,8 +160,8 @@ export const CreateMeetingForm = () => {
               </ModalHeader>
               <ModalBody>
                 <form
-                  onSubmit={handleSubmit}
                   className="flex flex-col space-y-4 p-4 rounded-lg shadow-md"
+                  onSubmit={handleSubmit}
                 >
                   <Input
                     required
@@ -169,7 +169,6 @@ export const CreateMeetingForm = () => {
                     type="text"
                     value={formData.title}
                     name="title"
-                    onChange={handleInputChange}
                     radius="sm"
                     color="primary"
                     variant="bordered"
@@ -178,6 +177,7 @@ export const CreateMeetingForm = () => {
                       inputWrapper:
                         "border-primary-500 data-[hover=true]:border-primary font-bold",
                     }}
+                    onChange={handleInputChange}
                   />
 
                   <Textarea
@@ -188,12 +188,6 @@ export const CreateMeetingForm = () => {
                     color="primary"
                     variant="bordered"
                     value={formData.agenda}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        agenda: e.target.value,
-                      }))
-                    }
                     className="mb-6"
                     classNames={{
                       mainWrapper: "w-full",
@@ -201,6 +195,12 @@ export const CreateMeetingForm = () => {
                       inputWrapper:
                         "border-primary-500 data-[hover=true]:border-primary font-bold",
                     }}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        agenda: e.target.value,
+                      }))
+                    }
                   />
 
                   <Input
@@ -209,7 +209,6 @@ export const CreateMeetingForm = () => {
                     type="text"
                     value={formData.location}
                     name="location"
-                    onChange={handleInputChange}
                     radius="sm"
                     color="primary"
                     variant="bordered"
@@ -218,6 +217,7 @@ export const CreateMeetingForm = () => {
                       inputWrapper:
                         "border-primary-500 data-[hover=true]:border-primary font-bold",
                     }}
+                    onChange={handleInputChange}
                   />
 
                   <div className="flex gap-2 items-center">
@@ -228,7 +228,6 @@ export const CreateMeetingForm = () => {
                       type="date"
                       name="date"
                       value={formData.date}
-                      onChange={handleInputChange}
                       radius="sm"
                       color="primary"
                       variant="bordered"
@@ -237,6 +236,7 @@ export const CreateMeetingForm = () => {
                         inputWrapper:
                           "border-primary-500 data-[hover=true]:border-primary font-bold",
                       }}
+                      onChange={handleInputChange}
                     />
 
                     {/* Time input */}
@@ -246,7 +246,6 @@ export const CreateMeetingForm = () => {
                       type="time"
                       name="time"
                       value={formData.time}
-                      onChange={handleInputChange}
                       radius="sm"
                       color="primary"
                       variant="bordered"
@@ -255,6 +254,7 @@ export const CreateMeetingForm = () => {
                         inputWrapper:
                           "border-primary-500 data-[hover=true]:border-primary font-bold",
                       }}
+                      onChange={handleInputChange}
                     />
                   </div>
 
@@ -284,9 +284,7 @@ export const CreateMeetingForm = () => {
                       }
                     >
                       {Object.values(userCache).map((user) => (
-                        <DropdownItem key={user.name}>
-                          {user.name}
-                        </DropdownItem>
+                        <DropdownItem key={user.name}>{user.name}</DropdownItem>
                       ))}
                     </DropdownMenu>
                   </Dropdown>

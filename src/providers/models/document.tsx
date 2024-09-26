@@ -1,4 +1,3 @@
-import { db } from "@/config/firebase-config";
 import {
   doc,
   setDoc,
@@ -14,13 +13,15 @@ import {
 } from "firebase/firestore";
 import { useState, useEffect, useContext, createContext, useMemo } from "react";
 
+import { db } from "@/config/firebase-config";
+
 // Document interface
 export interface Document {
   document_id: string;
   document_title: string;
   document_type: string;
   upload_date: Date | any;
-  uploader: string; // References a user_id
+  uploader_id: string; // References a user_id
   file_path: string;
 }
 
@@ -63,6 +64,7 @@ export const DocumentProvider = ({
       // Remove undefined fields
       Object.keys(documentData).forEach((key) => {
         const typedKey = key as keyof Document;
+
         if (documentData[typedKey] === undefined) {
           delete documentData[typedKey];
         }
@@ -86,6 +88,7 @@ export const DocumentProvider = ({
   ) => {
     try {
       const documentRef = doc(db, "Documents", document_id);
+
       await updateDoc(documentRef, docData);
       setDocumentCache((prev) => ({
         ...prev,
@@ -101,10 +104,13 @@ export const DocumentProvider = ({
   const deleteDocument = async (document_id: string) => {
     try {
       const documentRef = doc(db, "Documents", document_id);
+
       await deleteDoc(documentRef);
       setDocumentCache((prev) => {
         const updatedCache = { ...prev };
+
         delete updatedCache[document_id];
+
         return updatedCache;
       });
     } catch (error) {
@@ -145,12 +151,14 @@ export const DocumentProvider = ({
       const documents = documentsSnapshot.docs.map(
         (doc) => doc.data() as Document,
       );
+
       setDocumentCache((prev) =>
         documents.reduce(
           (cache, doc) => ({ ...cache, [doc.document_id]: doc }),
           prev,
         ),
       );
+
       return documents;
     } catch (error) {
       console.error("Error fetching documents:", error);
@@ -179,6 +187,7 @@ export const DocumentProvider = ({
       const documents = filteredSnapshot.docs.map(
         (doc) => doc.data() as Document,
       );
+
       return documents;
     } catch (error) {
       console.error("Error filtering documents:", error);
@@ -190,6 +199,7 @@ export const DocumentProvider = ({
   const subscribeToDocumentUpdates = (callback: (docs: Document[]) => void) => {
     return onSnapshot(collection(db, "Documents"), (snapshot) => {
       const documents = snapshot.docs.map((doc) => doc.data() as Document);
+
       setDocumentCache((prev) =>
         documents.reduce(
           (cache, doc) => ({ ...cache, [doc.document_id]: doc }),
@@ -244,5 +254,6 @@ export const useDocumentModel = () => {
 
   if (!context)
     throw new Error("useDocumentModel must be used within a DocumentProvider");
+
   return context;
 };

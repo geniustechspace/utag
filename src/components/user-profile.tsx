@@ -10,10 +10,10 @@ import {
 } from "@nextui-org/dropdown";
 import { Avatar } from "@nextui-org/avatar";
 import { User } from "@nextui-org/user";
+import { Button } from "@nextui-org/button";
 
 import { internalUrls } from "@/config/site-config";
 import { logOut, useAuth } from "@/providers/auth-provider";
-import { Button } from "@nextui-org/button";
 
 export const UserProfile = () => {
   const router = useRouter();
@@ -25,7 +25,9 @@ export const UserProfile = () => {
     router.push(internalUrls.signin);
   };
 
-  if (!authUser) {return null}
+  if (!authUser) {
+    return null;
+  }
 
   return (
     <Dropdown

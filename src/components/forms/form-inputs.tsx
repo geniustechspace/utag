@@ -29,10 +29,10 @@ export const EditableField = ({
       <Input
         value={value || ""}
         disabled={!isEditable}
-        onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         size="md"
         radius="sm"
+        onChange={(e) => onChange(e.target.value)}
       />
     </div>
   );

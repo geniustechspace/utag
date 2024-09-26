@@ -1,4 +1,3 @@
-import { db } from "@/config/firebase-config";
 import {
   doc,
   setDoc,
@@ -16,6 +15,8 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { useState, useEffect, useContext, createContext, useMemo } from "react";
+
+import { db } from "@/config/firebase-config";
 
 export interface Vote {
   user_id: string;
@@ -71,6 +72,7 @@ export const ElectionProvider = ({
       // Remove undefined fields
       Object.keys(electionData).forEach((key) => {
         const typedKey = key as keyof Election;
+
         if (electionData[typedKey] === undefined) {
           delete electionData[typedKey];
         }
@@ -94,6 +96,7 @@ export const ElectionProvider = ({
   ) => {
     try {
       const electionRef = doc(db, "elections", election_id);
+
       await updateDoc(electionRef, electionData);
       setElectionCache((prev) => ({
         ...prev,
@@ -109,10 +112,13 @@ export const ElectionProvider = ({
   const deleteElection = async (election_id: string) => {
     try {
       const electionRef = doc(db, "elections", election_id);
+
       await deleteDoc(electionRef);
       setElectionCache((prev) => {
         const updatedCache = { ...prev };
+
         delete updatedCache[election_id];
+
         return updatedCache;
       });
     } catch (error) {
@@ -135,6 +141,7 @@ export const ElectionProvider = ({
 
       if (electionData)
         setElectionCache((prev) => ({ ...prev, [election_id]: electionData }));
+
       return electionData;
     } catch (error) {
       console.error("Error fetching election:", error);
@@ -151,12 +158,14 @@ export const ElectionProvider = ({
       const elections = electionSnapshot.docs.map(
         (doc) => doc.data() as Election,
       );
+
       setElectionCache((prev) =>
         elections.reduce(
           (cache, election) => ({ ...cache, [election.election_id]: election }),
           prev,
         ),
       );
+
       return elections;
     } catch (error) {
       console.error("Error fetching elections:", error);
@@ -206,6 +215,7 @@ export const ElectionProvider = ({
       const updatedResults = election.results.filter(
         (v) => v.user_id !== vote.user_id,
       );
+
       updatedResults.push({ ...vote, timestamp: new Date() });
 
       return {
@@ -236,6 +246,7 @@ export const ElectionProvider = ({
       const elections = filteredSnapshot.docs.map(
         (doc) => doc.data() as Election,
       );
+
       return elections;
     } catch (error) {
       console.error("Error filtering elections:", error);
@@ -249,6 +260,7 @@ export const ElectionProvider = ({
   ) => {
     return onSnapshot(collection(db, "elections"), (snapshot) => {
       const elections = snapshot.docs.map((doc) => doc.data() as Election);
+
       setElectionCache((prev) =>
         elections.reduce(
           (cache, election) => ({ ...cache, [election.election_id]: election }),
@@ -304,5 +316,6 @@ export const useElectionModel = () => {
 
   if (!context)
     throw new Error("useElectionModel must be used within an ElectionProvider");
+
   return context;
 };

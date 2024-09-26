@@ -1,10 +1,11 @@
 "use client";
 
-import { internalUrls, siteConfig } from "@/config/site-config";
+import { useMemo, useState } from "react";
+
+import { internalUrls } from "@/config/site-config";
 import { withLoginRequired } from "@/providers/auth-provider/firebase/provider";
 import { Sidebar } from "@/components/sidebar";
 import { usePromotionModel } from "@/providers/models";
-import { useMemo, useState } from "react";
 
 const PromotionsPageLayout = ({ children }: { children: React.ReactNode }) => {
   const { promotionCache } = usePromotionModel();
@@ -18,6 +19,7 @@ const PromotionsPageLayout = ({ children }: { children: React.ReactNode }) => {
       label: `${promotion.current_rank} - ${promotion.desired_rank}`,
       href: `${internalUrls.promotions}/${promotion.promotion_id}`,
     }));
+
     setSidenavItems(items);
   }, [promotionCache]);
 

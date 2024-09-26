@@ -1,9 +1,6 @@
 "use client";
 
 import NextLink from "next/link";
-import { internalUrls } from "@/config/site-config";
-import { useAuth } from "@/providers/auth-provider";
-import { Feedback, useFeedbackModel } from "@/providers/models";
 import { Button } from "@nextui-org/button";
 import {
   Dropdown,
@@ -19,9 +16,13 @@ import {
   ModalBody,
   useDisclosure,
 } from "@nextui-org/modal";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState, useMemo, Key, useEffect } from "react";
 import { FiArrowLeftCircle, FiPlus } from "react-icons/fi";
+
+import { Feedback, useFeedbackModel } from "@/providers/models";
+import { useAuth } from "@/providers/auth-provider";
+import { internalUrls } from "@/config/site-config";
 
 const initialForm = {
   _id: "",
@@ -63,6 +64,7 @@ export const CreateFeedbackForm = () => {
 
   // Correct way to get the last segment of the URL path
   const feedback_id = useMemo(() => pathname.split("/").pop(), [pathname]);
+
   console.log(feedback_id);
 
   useEffect(() => {
@@ -70,6 +72,7 @@ export const CreateFeedbackForm = () => {
       if (!feedback_id) return; // Ensure feedback_id is available
       try {
         const _feedback = await getFeedback(feedback_id);
+
         setFeedback(_feedback);
       } catch (err) {
         console.error("Error fetching feedback:", err);
@@ -81,6 +84,7 @@ export const CreateFeedbackForm = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -156,9 +160,9 @@ export const CreateFeedbackForm = () => {
       <Modal
         size="2xl"
         isOpen={isOpen}
-        onOpenChange={onOpenChange}
         isDismissable={false}
         isKeyboardDismissDisabled={true}
+        onOpenChange={onOpenChange}
       >
         <ModalContent className="border-1 border-primary">
           {(onClose) => (
@@ -168,8 +172,8 @@ export const CreateFeedbackForm = () => {
               </ModalHeader>
               <ModalBody>
                 <form
-                  onSubmit={handleSubmit}
                   className="flex flex-col space-y-4 p-4 rounded-lg shadow-md"
+                  onSubmit={handleSubmit}
                 >
                   <div className="flex justify-between">
                     {/* Feedback Type Dropdown */}
@@ -185,9 +189,9 @@ export const CreateFeedbackForm = () => {
                         </Button>
                       </DropdownTrigger>
                       <DropdownMenu
+                        disallowEmptySelection
                         aria-label="Feedback Type Selection"
                         variant="flat"
-                        disallowEmptySelection
                         selectionMode="single"
                         selectedKeys={selectedTypeKeys as unknown as undefined}
                         onSelectionChange={(keys) =>
@@ -219,9 +223,9 @@ export const CreateFeedbackForm = () => {
                         </Button>
                       </DropdownTrigger>
                       <DropdownMenu
+                        disallowEmptySelection
                         aria-label="Target Group Selection"
                         variant="flat"
-                        disallowEmptySelection
                         selectionMode="single"
                         selectedKeys={
                           selectedTargetKeys as unknown as undefined
@@ -265,7 +269,6 @@ export const CreateFeedbackForm = () => {
                     type="text"
                     value={formData.subject ?? ""}
                     name="subject"
-                    onChange={handleInputChange}
                     radius="sm"
                     color="primary"
                     variant="bordered"
@@ -275,6 +278,7 @@ export const CreateFeedbackForm = () => {
                       inputWrapper:
                         "border-primary-500 data-[hover=true]:border-primary font-bold",
                     }}
+                    onChange={handleInputChange}
                   />
 
                   <Textarea
@@ -287,12 +291,6 @@ export const CreateFeedbackForm = () => {
                     color="primary"
                     variant="bordered"
                     value={formData.message ?? ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        message: e.target.value,
-                      }))
-                    }
                     className="mb-12"
                     classNames={{
                       mainWrapper: "w-full",
@@ -300,6 +298,12 @@ export const CreateFeedbackForm = () => {
                       inputWrapper:
                         "border-primary-500 data-[hover=true]:border-primary font-bold",
                     }}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        message: e.target.value,
+                      }))
+                    }
                   />
 
                   <Button

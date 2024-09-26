@@ -5,15 +5,14 @@ import {
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
-  DropdownSection,
   DropdownItem,
 } from "@nextui-org/dropdown";
-import {Badge} from "@nextui-org/badge"
+import { Badge } from "@nextui-org/badge";
 import { IoIosNotifications } from "react-icons/io";
+import { Button } from "@nextui-org/button";
 
 import { internalUrls } from "@/config/site-config";
 import { logOut, useAuth } from "@/providers/auth-provider";
-import { Button } from "@nextui-org/button";
 
 export const NotificationDropdown = () => {
   const router = useRouter();

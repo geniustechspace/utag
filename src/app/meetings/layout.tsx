@@ -1,12 +1,17 @@
 "use client";
 
-import { CreateMeetingForm } from "@/components/forms/meetings-form";
-import { Sidebar } from "@/components/sidebar";
-import { internalUrls, siteConfig } from "@/config/site-config";
-import { useMeetingModel } from "@/providers/models";
 import { useMemo, useState } from "react";
 
-export default function MeetingsLayout({ children }: { children: React.ReactNode }) {
+import { CreateMeetingForm } from "@/components/forms/meetings-form";
+import { Sidebar } from "@/components/sidebar";
+import { internalUrls } from "@/config/site-config";
+import { useMeetingModel } from "@/providers/models";
+
+export default function MeetingsLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { meetingCache } = useMeetingModel();
   const [sidenavItems, setSidenavItems] = useState<
     { label: string; href: string }[]
@@ -18,6 +23,7 @@ export default function MeetingsLayout({ children }: { children: React.ReactNode
       label: `${meeting.title}`,
       href: `${internalUrls.meetings}/${meeting.meeting_id}`,
     }));
+
     setSidenavItems(items);
   }, [meetingCache]);
 

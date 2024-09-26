@@ -1,15 +1,21 @@
 "use client";
 
-import { Select, SelectSection, SelectItem } from "@nextui-org/select";
+import { Select, SelectItem } from "@nextui-org/select";
 import { User as AuthUser } from "firebase/auth";
-import { internalUrls, userRoles } from "@/config/site-config";
-import { User, useUserModel } from "@/providers/models/user-profile";
-import { handleAuthErrors, loginWithEmail, logOut, signUpWithEmail } from "@/providers/auth-provider";
 import { Button } from "@nextui-org/button";
 import { Input } from "@nextui-org/input";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, FormEvent } from "react";
 import NextLink from "next/link";
+
+import {
+  handleAuthErrors,
+  loginWithEmail,
+  logOut,
+  signUpWithEmail,
+} from "@/providers/auth-provider";
+import { User, useUserModel } from "@/providers/models/user-profile";
+import { internalUrls, userRoles } from "@/config/site-config";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -30,16 +36,19 @@ export default function SignupPage() {
 
     if (!(password === password2)) {
       setErrors("Passwords not the same!");
+
       return;
     }
 
     if (!name) {
       setErrors("User name required!");
+
       return;
     }
 
     try {
       const _user = (await signUpWithEmail({ email, password })) as AuthUser;
+
       await logOut();
       await createUser({
         user_id: _user.uid,
@@ -49,7 +58,7 @@ export default function SignupPage() {
         role,
         photoURL: _user.photoURL || undefined,
       });
-      await loginWithEmail({email, password})
+      await loginWithEmail({ email, password });
       router.push(redirectUrl || internalUrls.home);
     } catch (error) {
       handleAuthErrors(error, setErrors);
@@ -80,10 +89,8 @@ export default function SignupPage() {
             }}
             onChange={(e) => setRole(e.target.value as User["role"])}
           >
-            {userRoles.map((role, idx) => (
-              <SelectItem key={role}>
-                {role}
-              </SelectItem>
+            {userRoles.map((role) => (
+              <SelectItem key={role}>{role}</SelectItem>
             ))}
           </Select>
         </div>
@@ -94,7 +101,6 @@ export default function SignupPage() {
             labelPlacement="outside"
             type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
             radius="sm"
             color="primary"
             variant="bordered"
@@ -104,6 +110,7 @@ export default function SignupPage() {
               inputWrapper:
                 "border-primary-500 data-[hover=true]:border-primary font-bold",
             }}
+            onChange={(e) => setName(e.target.value)}
           />
         </div>
 
@@ -113,7 +120,6 @@ export default function SignupPage() {
             labelPlacement="outside"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
             radius="sm"
             color="primary"
             variant="bordered"
@@ -123,6 +129,7 @@ export default function SignupPage() {
               inputWrapper:
                 "border-primary-500 data-[hover=true]:border-primary font-bold",
             }}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
 
@@ -132,7 +139,6 @@ export default function SignupPage() {
             labelPlacement="outside"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
             radius="sm"
             color="primary"
             variant="bordered"
@@ -142,6 +148,7 @@ export default function SignupPage() {
               inputWrapper:
                 "border-primary-500 data-[hover=true]:border-primary font-bold",
             }}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </div>
 
@@ -151,7 +158,6 @@ export default function SignupPage() {
             labelPlacement="outside"
             type="password"
             value={password2}
-            onChange={(e) => setPassword2(e.target.value)}
             radius="sm"
             color="primary"
             variant="bordered"
@@ -161,6 +167,7 @@ export default function SignupPage() {
               inputWrapper:
                 "border-primary-500 data-[hover=true]:border-primary font-bold",
             }}
+            onChange={(e) => setPassword2(e.target.value)}
           />
         </div>
 

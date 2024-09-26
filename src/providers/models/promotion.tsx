@@ -1,4 +1,3 @@
-import { db } from "@/config/firebase-config";
 import {
   doc,
   setDoc,
@@ -13,6 +12,8 @@ import {
   limit,
 } from "firebase/firestore";
 import { useState, useEffect, useContext, createContext, useMemo } from "react";
+
+import { db } from "@/config/firebase-config";
 
 export interface Promotion {
   promotion_id: string;
@@ -67,6 +68,7 @@ export const PromotionProvider = ({
       // Remove undefined fields
       Object.keys(promotionData).forEach((key) => {
         const typedKey = key as keyof Promotion;
+
         if (promotionData[typedKey] === undefined) {
           delete promotionData[typedKey];
         }
@@ -90,6 +92,7 @@ export const PromotionProvider = ({
   ) => {
     try {
       const promotionRef = doc(db, "Promotions", promotion_id);
+
       await updateDoc(promotionRef, promotionData);
       setPromotionCache((prev) => ({
         ...prev,
@@ -105,10 +108,13 @@ export const PromotionProvider = ({
   const deletePromotion = async (promotion_id: string) => {
     try {
       const promotionRef = doc(db, "Promotions", promotion_id);
+
       await deleteDoc(promotionRef);
       setPromotionCache((prev) => {
         const updatedCache = { ...prev };
+
         delete updatedCache[promotion_id];
+
         return updatedCache;
       });
     } catch (error) {
@@ -136,6 +142,7 @@ export const PromotionProvider = ({
           ...prev,
           [promotion_id]: promotionData,
         }));
+
       return promotionData;
     } catch (error) {
       console.error("Error fetching promotion:", error);
@@ -152,6 +159,7 @@ export const PromotionProvider = ({
       const promotions = promotionSnapshot.docs.map(
         (doc) => doc.data() as Promotion,
       );
+
       setPromotionCache((prev) =>
         promotions.reduce(
           (cache, promotion) => ({
@@ -161,6 +169,7 @@ export const PromotionProvider = ({
           prev,
         ),
       );
+
       return promotions;
     } catch (error) {
       console.error("Error fetching promotions:", error);
@@ -189,6 +198,7 @@ export const PromotionProvider = ({
       const promotions = filteredSnapshot.docs.map(
         (doc) => doc.data() as Promotion,
       );
+
       return promotions;
     } catch (error) {
       console.error("Error filtering promotions:", error);
@@ -202,6 +212,7 @@ export const PromotionProvider = ({
   ) => {
     return onSnapshot(collection(db, "Promotions"), (snapshot) => {
       const promotions = snapshot.docs.map((doc) => doc.data() as Promotion);
+
       setPromotionCache((prev) =>
         promotions.reduce(
           (cache, promotion) => ({
@@ -261,5 +272,6 @@ export const usePromotionModel = () => {
     throw new Error(
       "usePromotionModel must be used within a PromotionProvider",
     );
+
   return context;
 };

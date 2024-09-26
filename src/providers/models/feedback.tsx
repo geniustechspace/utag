@@ -1,4 +1,3 @@
-import { db } from "@/config/firebase-config";
 import {
   doc,
   setDoc,
@@ -13,6 +12,8 @@ import {
   limit,
 } from "firebase/firestore";
 import { useState, useEffect, useContext, createContext, useMemo } from "react";
+
+import { db } from "@/config/firebase-config";
 
 export interface Feedback {
   _id: string;
@@ -77,6 +78,7 @@ export const FeedbackProvider = ({
       // Remove undefined fields
       Object.keys(feedbackData).forEach((key) => {
         const typedKey = key as keyof Feedback;
+
         if (feedbackData[typedKey] === undefined) {
           delete feedbackData[typedKey];
         }
@@ -97,6 +99,7 @@ export const FeedbackProvider = ({
   ) => {
     try {
       const feedbackRef = doc(db, "Feedbacks", feedback_id);
+
       await updateDoc(feedbackRef, feedbackData);
       setFeedbackCache((prev) => ({
         ...prev,
@@ -115,6 +118,7 @@ export const FeedbackProvider = ({
 
       if (!feedback) {
         console.error(`Feedback with id ${feedback_id} not found`);
+
         return;
       }
 
@@ -141,10 +145,13 @@ export const FeedbackProvider = ({
   const deleteFeedback = async (feedback_id: string) => {
     try {
       const feedbackRef = doc(db, "Feedbacks", feedback_id);
+
       await deleteDoc(feedbackRef);
       setFeedbackCache((prev) => {
         const updatedCache = { ...prev };
+
         delete updatedCache[feedback_id];
+
         return updatedCache;
       });
     } catch (error) {
@@ -167,6 +174,7 @@ export const FeedbackProvider = ({
 
       if (feedbackData)
         setFeedbackCache((prev) => ({ ...prev, [feedback_id]: feedbackData }));
+
       return feedbackData;
     } catch (error) {
       console.error("Error fetching feedback:", error);
@@ -183,12 +191,14 @@ export const FeedbackProvider = ({
       const feedbacks = feedbackSnapshot.docs.map(
         (doc) => doc.data() as Feedback,
       );
+
       setFeedbackCache((prev) =>
         feedbacks.reduce(
           (cache, feedback) => ({ ...cache, [feedback._id]: feedback }),
           prev,
         ),
       );
+
       return feedbacks;
     } catch (error) {
       console.error("Error fetching feedbacks:", error);
@@ -217,6 +227,7 @@ export const FeedbackProvider = ({
       const feedbacks = filteredSnapshot.docs.map(
         (doc) => doc.data() as Feedback,
       );
+
       return feedbacks;
     } catch (error) {
       console.error("Error filtering feedbacks:", error);
@@ -230,6 +241,7 @@ export const FeedbackProvider = ({
   ) => {
     return onSnapshot(collection(db, "Feedbacks"), (snapshot) => {
       const feedbacks = snapshot.docs.map((doc) => doc.data() as Feedback);
+
       setFeedbackCache((prev) =>
         feedbacks.reduce(
           (cache, feedback) => ({ ...cache, [feedback._id]: feedback }),
@@ -287,5 +299,6 @@ export const useFeedbackModel = () => {
 
   if (!context)
     throw new Error("useFeedbackModel must be used within a FeedbackProvider");
+
   return context;
 };

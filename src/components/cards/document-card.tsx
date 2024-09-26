@@ -1,16 +1,16 @@
 "use client";
 
-import { Document } from "@/providers/models";
+import { useState, useEffect } from "react";
 import { Card, CardHeader, CardBody, CardFooter } from "@nextui-org/card";
 import { Button } from "@nextui-org/button";
-import { Badge } from "@nextui-org/badge";
-import { Avatar } from "@nextui-org/avatar";
 import { FaFilePdf, FaFileWord } from "react-icons/fa";
+
+import { Document, useUserModel } from "@/providers/models";
 
 interface DocumentCardProps {
   document: Document;
   onDownload?: (filePath: string) => void; // Optional download function
-  onDelete?: (document_id: string) => void; // Optional delet function
+  onDelete?: (document_id: string) => void; // Optional delete function
 }
 
 export const DocumentCard: React.FC<DocumentCardProps> = ({
@@ -18,6 +18,26 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
   onDownload,
   onDelete,
 }) => {
+  const { getUser } = useUserModel();
+  const [uploader, setUploader] = useState<string>("");
+
+  // Fetch the uploader's details when component mounts
+  useEffect(() => {
+    const fetchUploader = async () => {
+      try {
+        const _user = await getUser(document.uploader_id);
+
+        setUploader(_user?.name || "Unknown");
+      } catch (error) {
+        console.error("Error fetching uploader:", error);
+        setUploader("Unknown");
+      }
+    };
+
+    fetchUploader();
+  }, [document.uploader_id, getUser]);
+
+  // Helper function to get the correct file icon based on document type
   const getFileIcon = (type: string) => {
     switch (type.toLowerCase()) {
       case "pdf":
@@ -29,10 +49,11 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
     }
   };
 
+  // Handle different date types
   const formattedDate =
-    typeof document.upload_date === typeof Date
+    document.upload_date instanceof Date
       ? document.upload_date.toDateString()
-      : document.upload_date.toDate().toDateString();
+      : document.upload_date.toDate().toDateString(); // If Firestore Timestamp
 
   return (
     <Card radius="sm" className="w-full shadow-lg">
@@ -43,17 +64,15 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
             {getFileIcon(document.document_type)}
           </Button>
           <div>
-            <h4 className="font-bold">{document.document_title}</h4>
-            <p className="text-xs text-gray-500">
-              Uploaded on {formattedDate}
-            </p>
+            <h6 className="font-bold text-wrap">{document.document_title}</h6>
+            <p className="text-xs text-gray-500">Uploaded on {formattedDate}</p>
           </div>
         </div>
       </CardHeader>
 
       <CardBody className="py-1">
         <p className="text-sm">
-          Uploaded by <span className="font-medium">{document.uploader}</span>
+          Uploaded by <span className="font-medium">{uploader}</span>
         </p>
       </CardBody>
 

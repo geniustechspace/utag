@@ -1,6 +1,5 @@
 import "@/styles/globals.css";
 import { Metadata, Viewport } from "next";
-import NextLink from "next/link";
 import { Link } from "@nextui-org/link";
 import clsx from "clsx";
 

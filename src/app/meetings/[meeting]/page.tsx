@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Meeting, useMeetingModel } from "@/providers/models";
 import { usePathname, useRouter } from "next/navigation";
+
+import { Meeting, useMeetingModel } from "@/providers/models";
 
 export default function MeetingDetailsPage() {
   const router = useRouter();
@@ -11,9 +12,10 @@ export default function MeetingDetailsPage() {
   const { meetingCache, getMeeting } = useMeetingModel(); // Fetch meeting functions from context
   const [meeting, setMeeting] = useState<Meeting | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  
+
   // Get the last segment of the URL path
   const meeting_id = useMemo(() => pathname.split("/").pop(), [pathname]);
+
   console.log(meeting_id);
 
   useEffect(() => {
@@ -22,6 +24,7 @@ export default function MeetingDetailsPage() {
       const fetchMeetingDetails = async () => {
         try {
           const meetingData = await getMeeting(meeting_id as string);
+
           setMeeting(meetingData);
         } catch (error) {
           console.error("Error fetching meeting details:", error);

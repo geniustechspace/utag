@@ -8,7 +8,7 @@ import {
   ReactNode,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { onAuthStateChanged, User as AuthUser} from "firebase/auth";
+import { onAuthStateChanged, User as AuthUser } from "firebase/auth";
 
 import { internalUrls } from "@/config/site-config";
 import { auth } from "@/config/firebase-config";
@@ -32,12 +32,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (_user) => {
       if (_user) {
-        seAuthUser(_user)
+        seAuthUser(_user);
         const user = await getUser(_user.uid);
+
         setUser(user);
       } else {
-        seAuthUser(null)
-        setUser(null)
+        seAuthUser(null);
+        setUser(null);
       }
 
       setLoading(false);
@@ -47,7 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{authUser, user, loading }}>
+    <AuthContext.Provider value={{ authUser, user, loading }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,4 +1,3 @@
-import { db } from "@/config/firebase-config";
 import {
   doc,
   setDoc,
@@ -13,6 +12,8 @@ import {
   limit,
 } from "firebase/firestore";
 import { useState, useEffect, useContext, createContext, useMemo } from "react";
+
+import { db } from "@/config/firebase-config";
 
 export interface Meeting {
   meeting_id: string;
@@ -61,6 +62,7 @@ export const MeetingProvider = ({
       // Remove undefined fields
       Object.keys(meetingData).forEach((key) => {
         const typedKey = key as keyof Meeting;
+
         if (meetingData[typedKey] === undefined) {
           delete meetingData[typedKey];
         }
@@ -81,6 +83,7 @@ export const MeetingProvider = ({
   ) => {
     try {
       const meetingRef = doc(db, "meetings", meeting_id);
+
       await updateDoc(meetingRef, meetingData);
       setMeetingCache((prev) => ({
         ...prev,
@@ -96,10 +99,13 @@ export const MeetingProvider = ({
   const deleteMeeting = async (meeting_id: string) => {
     try {
       const meetingRef = doc(db, "meetings", meeting_id);
+
       await deleteDoc(meetingRef);
       setMeetingCache((prev) => {
         const updatedCache = { ...prev };
+
         delete updatedCache[meeting_id];
+
         return updatedCache;
       });
     } catch (error) {
@@ -122,6 +128,7 @@ export const MeetingProvider = ({
 
       if (meetingData)
         setMeetingCache((prev) => ({ ...prev, [meeting_id]: meetingData }));
+
       return meetingData;
     } catch (error) {
       console.error("Error fetching meeting:", error);
@@ -136,12 +143,14 @@ export const MeetingProvider = ({
         query(collection(db, "meetings"), limit(fetchLimit)),
       );
       const meetings = meetingSnapshot.docs.map((doc) => doc.data() as Meeting);
+
       setMeetingCache((prev) =>
         meetings.reduce(
           (cache, meeting) => ({ ...cache, [meeting.meeting_id]: meeting }),
           prev,
         ),
       );
+
       return meetings;
     } catch (error) {
       console.error("Error fetching meetings:", error);
@@ -170,6 +179,7 @@ export const MeetingProvider = ({
       const meetings = filteredSnapshot.docs.map(
         (doc) => doc.data() as Meeting,
       );
+
       return meetings;
     } catch (error) {
       console.error("Error filtering meetings:", error);
@@ -183,6 +193,7 @@ export const MeetingProvider = ({
   ) => {
     return onSnapshot(collection(db, "meetings"), (snapshot) => {
       const meetings = snapshot.docs.map((doc) => doc.data() as Meeting);
+
       setMeetingCache((prev) =>
         meetings.reduce(
           (cache, meeting) => ({ ...cache, [meeting.meeting_id]: meeting }),
@@ -237,5 +248,6 @@ export const useMeetingModel = () => {
 
   if (!context)
     throw new Error("useMeetingModel must be used within a MeetingProvider");
+
   return context;
 };

@@ -4,7 +4,11 @@ import { siteConfig } from "@/config/site-config";
 import { withLoginRequired } from "@/providers/auth-provider/firebase/provider";
 import { Sidebar } from "@/components/sidebar";
 
-const NotificationsPageLayout = ({ children }: { children: React.ReactNode }) => {
+const NotificationsPageLayout = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   // const { promotionCache } = useNotificationModel();
   // const [sidenavItems, setSidenavItems] = useState<
   //   { label: string; href: string }[]

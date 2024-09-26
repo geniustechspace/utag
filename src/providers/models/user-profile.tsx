@@ -1,4 +1,3 @@
-import { db } from "@/config/firebase-config";
 import {
   doc,
   setDoc,
@@ -13,6 +12,8 @@ import {
   limit,
 } from "firebase/firestore";
 import { useState, useEffect, useContext, createContext, useMemo } from "react";
+
+import { db } from "@/config/firebase-config";
 
 export interface User {
   photoURL?: string;
@@ -57,6 +58,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   // Create user with error handling
   const createUser = async (user: User) => {
     const _user = await getUser(user.user_id);
+
     if (_user) return;
     try {
       user.slug = user.name.split(" ").join("-");
@@ -85,6 +87,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const updateUser = async (user_id: string, userData: Partial<User>) => {
     try {
       const userRef = doc(db, "Users", user_id);
+
       await updateDoc(userRef, userData);
       setUserCache((prev) => ({
         ...prev,
@@ -100,10 +103,13 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const deleteUser = async (user_id: string) => {
     try {
       const userRef = doc(db, "Users", user_id);
+
       await deleteDoc(userRef);
       setUserCache((prev) => {
         const updatedCache = { ...prev };
+
         delete updatedCache[user_id];
+
         return updatedCache;
       });
     } catch (error) {
@@ -122,6 +128,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       const userData = userDoc.exists() ? (userDoc.data() as User) : null;
 
       if (userData) setUserCache((prev) => ({ ...prev, [user_id]: userData }));
+
       return userData;
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -136,12 +143,14 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         query(collection(db, "Users"), limit(fetchLimit)),
       );
       const users = usersSnapshot.docs.map((doc) => doc.data() as User);
+
       setUserCache((prev) =>
         users.reduce(
           (cache, user) => ({ ...cache, [user.user_id]: user }),
           prev,
         ),
       );
+
       return users;
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -163,6 +172,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
       const filteredSnapshot = await getDocs(userQuery);
       const users = filteredSnapshot.docs.map((doc) => doc.data() as User);
+
       return users;
     } catch (error) {
       console.error("Error filtering users:", error);
@@ -174,6 +184,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const subscribeToUserUpdates = (callback: (users: User[]) => void) => {
     return onSnapshot(collection(db, "Users"), (snapshot) => {
       const users = snapshot.docs.map((doc) => doc.data() as User);
+
       setUserCache((prev) =>
         users.reduce(
           (cache, user) => ({ ...cache, [user.user_id]: user }),
@@ -228,5 +239,6 @@ export const useUserModel = () => {
 
   if (!context)
     throw new Error("useUserModel must be used within a UserProvider");
+
   return context;
 };
