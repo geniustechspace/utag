@@ -14,7 +14,7 @@ import NextLink from "next/link";
 import clsx from "clsx";
 
 import { siteConfig } from "@/config/site-config";
-import { Logo } from "@/components/icons";
+import { Logo, UTAGLogo } from "@/components/icons";
 import { UserProfile } from "./user-profile";
 import { NotificationDropdown } from "./notification";
 
@@ -24,9 +24,9 @@ export const Navbar = () => {
       <NavbarContent className="" justify="start">
         <NavbarMenuToggle className="md:hidden" />
         <NavbarBrand as="li" className="gap-3 max-w-fit">
-          <NextLink className="flex justify-start items-center gap-1" href="/">
-            <Logo />
-            <p className="font-bold text-inherit">
+          <NextLink className="flex justify-start items-center gap-2" href="/">
+            <UTAGLogo />
+            <p className="font-bold text-inherit text-xl">
               {siteConfig.name.toUpperCase()}
             </p>
           </NextLink>

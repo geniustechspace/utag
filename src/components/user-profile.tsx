@@ -18,12 +18,14 @@ import { Button } from "@nextui-org/button";
 export const UserProfile = () => {
   const router = useRouter();
 
-  const { user } = useAuth();
+  const { authUser, user } = useAuth();
 
   const handleLogOut = async () => {
     logOut();
     router.push(internalUrls.signin);
   };
+
+  if (!authUser) {return null}
 
   return (
     <Dropdown

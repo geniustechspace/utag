@@ -14,6 +14,8 @@ export const internalUrls = {
     constitution: "/constitution",
 };
 
+export const userRoles = ["Member", "Secretary", "President", "Treasurer", "Vice President", "Electoral Commissioner"]
+
 /* eslint-disable prettier/prettier */
 export type SiteConfig = typeof siteConfig;
 

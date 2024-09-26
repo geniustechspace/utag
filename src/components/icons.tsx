@@ -1,7 +1,7 @@
-/* eslint-disable prettier/prettier */
 import * as React from "react";
 
 import { IconSvgProps } from "@/types";
+import { Avatar } from "@nextui-org/avatar";
 
 export const Logo: React.FC<IconSvgProps> = ({
   size = 36,
@@ -51,4 +51,11 @@ export const NextUILogo: React.FC<IconSvgProps> = (props) => {
       />
     </svg>
   );
+};
+
+
+export const UTAGLogo: React.FC<IconSvgProps> = (props) => {
+  const { width, height = 40 } = props;
+
+  return <Avatar src="/favicon.jpg" size="sm" radius="sm" />;
 };

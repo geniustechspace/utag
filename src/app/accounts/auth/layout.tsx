@@ -1,5 +1,6 @@
 "use client";
 
+import { Image } from "@nextui-org/image";
 import { User as AuthUser } from "firebase/auth";
 import { Divider } from "@/components/utils";
 import { handleAuthErrors, loginWithGoogle } from "@/providers/auth-provider";
@@ -35,9 +36,14 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   };
 
   return (
-    <section className="flex w-full max-w-screen-xl mx-auto justify-between gap-3 my-8 px-6">
-      <div className="w-full md:w-2/4">Image</div>
-      <div className="card w-full md:w-2/4 px-6 py-5 rounded-md">
+    <section className="flex flex-wrap md:flex-nowrap w-full max-w-screen-xl mx-auto gap-3 my-8 px-6">
+      <Image
+        radius="sm"
+        src="/images/registration.jpg"
+        alt="UTAG - Registration Image"
+        classNames={{wrapper: "overflow-hidden", img:"object-cover w-full h-full"}}
+      />
+      <div className="card w-full md:min-w-96 px-6 py-5 rounded-md">
         <div className="w-full inline-flex flex-nowrap gap-x-4 justify-center my-3">
           <Button
             className="border-1 font-semibold text-sx shadow-md w-full mb-3"

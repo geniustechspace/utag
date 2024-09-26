@@ -1,9 +1,10 @@
 "use client";
 
+import { Select, SelectSection, SelectItem } from "@nextui-org/select";
 import { User as AuthUser } from "firebase/auth";
-import { internalUrls } from "@/config/site-config";
+import { internalUrls, userRoles } from "@/config/site-config";
 import { User, useUserModel } from "@/providers/models/user-profile";
-import { handleAuthErrors, signUpWithEmail } from "@/providers/auth-provider";
+import { handleAuthErrors, loginWithEmail, logOut, signUpWithEmail } from "@/providers/auth-provider";
 import { Button } from "@nextui-org/button";
 import { Input } from "@nextui-org/input";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -39,15 +40,16 @@ export default function SignupPage() {
 
     try {
       const _user = (await signUpWithEmail({ email, password })) as AuthUser;
-      const user_id = _user.uid;
+      await logOut();
       await createUser({
-        user_id,
-        name: _user.displayName!,
-        email: _user.email!,
+        user_id: _user.uid,
+        name,
+        email,
         password: "",
-        role: "Member",
+        role,
         photoURL: _user.photoURL || undefined,
       });
+      await loginWithEmail({email, password})
       router.push(redirectUrl || internalUrls.home);
     } catch (error) {
       handleAuthErrors(error, setErrors);
@@ -62,6 +64,29 @@ export default function SignupPage() {
             {errors}
           </p>
         )}
+
+        <div className="my-10">
+          <Select
+            label="Select a role"
+            // size="sm"
+            radius="sm"
+            color="primary"
+            variant="bordered"
+            labelPlacement="outside"
+            className=""
+            classNames={{
+              trigger:
+                "border-primary-500 data-[hover=true]:border-primary font-bold",
+            }}
+            onChange={(e) => setRole(e.target.value as User["role"])}
+          >
+            {userRoles.map((role, idx) => (
+              <SelectItem key={role}>
+                {role}
+              </SelectItem>
+            ))}
+          </Select>
+        </div>
 
         <div className="my-10">
           <Input

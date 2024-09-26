@@ -34,8 +34,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (_user) {
         seAuthUser(_user)
         const user = await getUser(_user.uid);
-        console.log(user)
         setUser(user);
+      } else {
+        seAuthUser(null)
+        setUser(null)
       }
 
       setLoading(false);
