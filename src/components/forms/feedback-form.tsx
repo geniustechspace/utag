@@ -99,14 +99,16 @@ export const CreateFeedbackForm = () => {
     try {
       await createFeedback({
         ...formData,
-        _id: Date.now().toString(),
+        _id: `${formData.subject}@${new Date().toISOString()}`
+          .replace(/[\s:]/g, "-")
+          .toLowerCase(),
         user_id: authUser.uid,
         type: selectedTypeValue.toLowerCase() as Feedback["type"],
         target_group: selectedTargetValue as Feedback["target_group"],
       });
       onClose();
-      alert("Feedback created successfully!");
-      // Optionally reset form
+      // alert("Feedback created successfully!");
+      // Reset form
       setFormData(initialForm as Feedback);
       setSelectedTypeKeys(new Set()); // Reset to default
       setSelectedTargetKeys(new Set()); // Reset to default

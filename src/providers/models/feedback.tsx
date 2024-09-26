@@ -245,6 +245,12 @@ export const FeedbackProvider = ({
       console.log("Feedbacks updated:", updatedFeedbacks);
     });
 
+    return () => {
+      unsubscribe(); // Cleanup on unmount
+    };
+  }, []);
+
+  useEffect(() => {
     // Prepopulate the cache on mount
     const fetchFeedbacks = async () => {
       try {
@@ -255,11 +261,7 @@ export const FeedbackProvider = ({
     };
 
     fetchFeedbacks();
-
-    return () => {
-      unsubscribe(); // Cleanup on unmount
-    };
-  }, []);
+  }, [feedbackCache]);
 
   return (
     <FeedbackContext.Provider

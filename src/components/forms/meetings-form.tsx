@@ -3,7 +3,7 @@
 import NextLink from "next/link";
 import { internalUrls } from "@/config/site-config";
 import { useAuth } from "@/providers/auth-provider";
-import { Meeting, useMeetingModel } from "@/providers/models";
+import { Meeting, useMeetingModel, useUserModel } from "@/providers/models";
 import { Button } from "@nextui-org/button";
 import {
   Dropdown,
@@ -30,26 +30,53 @@ const initialMeetingForm = {
 };
 
 export const CreateMeetingForm = () => {
-  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+  const pathname = usePathname();
+
   const { authUser } = useAuth();
+  const { userCache } = useUserModel();
   const { createMeeting } = useMeetingModel(); // Meeting model
+
+  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 
   const [formData, setFormData] = useState<Meeting>(
     initialMeetingForm as Meeting,
   );
 
-  const [selectedAttendeeKeys, setSelectedAttendeeKeys] = useState<
+  const [selectedSpeakersKeys, setSelectedSpeakersKeys] = useState<
     Iterable<Key>
   >(new Set([]));
 
-  const selectedAttendeeValue = useMemo(
-    () => Array.from(selectedAttendeeKeys).join(", "),
-    [selectedAttendeeKeys],
+  const selectedSpeakersValue = useMemo(
+    () => Array.from(selectedSpeakersKeys).join(", "),
+    [selectedSpeakersKeys],
   );
+
+  const { getMeeting } = useMeetingModel();
+
+  const [meeting, setMeeting] = useState<Meeting | null>(null);
+
+  // Correct way to get the last segment of the URL path
+  const meeting_id = useMemo(() => pathname.split("/").pop(), [pathname]);
+
+  useEffect(() => {
+    const fetchFeedback = async () => {
+      if (!meeting_id) return; // Ensure meeting_id is available
+      try {
+        const _feedback = await getMeeting(meeting_id);
+        setMeeting(_feedback);
+      } catch (err) {
+        console.error("Error fetching feedback:", err);
+      }
+    };
+
+    fetchFeedback();
+  }, [meeting_id]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,27 +90,49 @@ export const CreateMeetingForm = () => {
       return;
     }
 
-    // formData.organizer_id = authUser.uid;
+    formData.date = new Date(formData.date);
+    formData.time = new Date(formData.time!).toTimeString();
+
     try {
       await createMeeting({
         ...formData,
-        meeting_id: Date.now().toString(),
-        // organizer_id: authUser.uid,
-        participants: selectedAttendeeValue.split(", "),
+        meeting_id: `${formData.title}@${new Date().toISOString()}` // ISO string for precise timestamp
+          .replace(/[\s:]/g, "-")
+          .toLowerCase(),
+        participants: selectedSpeakersValue.split(", "),
       });
       onClose();
-      alert("Meeting created successfully!");
       setFormData(initialMeetingForm as unknown as Meeting);
-      setSelectedAttendeeKeys(new Set()); // Reset attendees
+      setSelectedSpeakersKeys(new Set()); // Reset attendees
     } catch (error) {
       console.error("Error creating meeting:", error);
       alert("Failed to create meeting.");
     }
   };
 
+
   return (
     <>
       <div className="flex justify-between mb-6">
+        {pathname === internalUrls.meetings ? (
+          <h6 className="font-bold">Meetings</h6>
+        ) : (
+          <>
+            <Button
+              as={NextLink}
+              href={internalUrls.meetings}
+              size="sm"
+              radius="sm"
+              color="primary"
+              variant="flat"
+              startContent={<FiArrowLeftCircle size={18} />}
+              className="font-bold"
+            >
+              Back
+            </Button>
+            <h6 className="font-bold">{meeting?.title}</h6>
+          </>
+        )}
         <Button
           size="sm"
           radius="sm"
@@ -154,25 +203,62 @@ export const CreateMeetingForm = () => {
                     }}
                   />
 
-                  {/* Date input */}
                   <Input
                     required
-                    label="Meeting Date"
-                    type="date"
-                    name="date"
-                    value={formData.date}
+                    label="Meeting address"
+                    type="text"
+                    value={formData.location}
+                    name="location"
                     onChange={handleInputChange}
                     radius="sm"
                     color="primary"
                     variant="bordered"
                     classNames={{
-                      mainWrapper: "w-full",
+                      mainWrapper: "w-full mt-6",
                       inputWrapper:
                         "border-primary-500 data-[hover=true]:border-primary font-bold",
                     }}
                   />
 
-                  {/* Attendees Dropdown */}
+                  <div className="flex gap-2 items-center">
+                    {/* Date input */}
+                    <Input
+                      required
+                      label="Meeting Date"
+                      type="date"
+                      name="date"
+                      value={formData.date}
+                      onChange={handleInputChange}
+                      radius="sm"
+                      color="primary"
+                      variant="bordered"
+                      classNames={{
+                        mainWrapper: "w-full",
+                        inputWrapper:
+                          "border-primary-500 data-[hover=true]:border-primary font-bold",
+                      }}
+                    />
+
+                    {/* Time input */}
+                    <Input
+                      required
+                      label="Meeting Time"
+                      type="time"
+                      name="time"
+                      value={formData.time}
+                      onChange={handleInputChange}
+                      radius="sm"
+                      color="primary"
+                      variant="bordered"
+                      classNames={{
+                        mainWrapper: "w-full",
+                        inputWrapper:
+                          "border-primary-500 data-[hover=true]:border-primary font-bold",
+                      }}
+                    />
+                  </div>
+
+                  {/* Speakerss Dropdown */}
                   <Dropdown>
                     <DropdownTrigger>
                       <Button
@@ -181,22 +267,27 @@ export const CreateMeetingForm = () => {
                         variant="bordered"
                         className="capitalize"
                       >
-                        {selectedAttendeeValue || "Select Attendees"}
+                        {selectedSpeakersValue || "Select Speakers"}
                       </Button>
                     </DropdownTrigger>
                     <DropdownMenu
-                      aria-label="Attendee Selection"
+                      aria-label="Speakers Selection"
                       variant="flat"
-                      disallowEmptySelection
+                      // disallowEmptySelection
+                      closeOnSelect={false}
                       selectionMode="multiple"
-                      selectedKeys={selectedAttendeeKeys as unknown as undefined}
+                      selectedKeys={
+                        selectedSpeakersKeys as unknown as undefined
+                      }
                       onSelectionChange={(keys) =>
-                        setSelectedAttendeeKeys(new Set(keys))
+                        setSelectedSpeakersKeys(new Set(keys))
                       }
                     >
-                      <DropdownItem key="Member 1">Member 1</DropdownItem>
-                      <DropdownItem key="Member 2">Member 2</DropdownItem>
-                      <DropdownItem key="Member 3">Member 3</DropdownItem>
+                      {Object.values(userCache).map((user) => (
+                        <DropdownItem key={user.name}>
+                          {user.name}
+                        </DropdownItem>
+                      ))}
                     </DropdownMenu>
                   </Dropdown>
 

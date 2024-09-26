@@ -1,15 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import { useEffect, useMemo, useState } from "react";
 import { Meeting, useMeetingModel } from "@/providers/models";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function MeetingDetailsPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const { meetingCache, getMeeting } = useMeetingModel(); // Fetch meeting functions from context
   const [meeting, setMeeting] = useState<Meeting | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const router = useRouter();
-  const { meeting_id } = router.query; // Assume meeting_id is passed via query params
+  
+  // Get the last segment of the URL path
+  const meeting_id = useMemo(() => pathname.split("/").pop(), [pathname]);
+  console.log(meeting_id);
 
   useEffect(() => {
     if (meeting_id) {
@@ -53,7 +58,7 @@ export default function MeetingDetailsPage() {
         </p>
       )}
       <div className="mb-2">
-        <strong>Participants:</strong>
+        <strong>Speakers:</strong>
         <ul className="list-disc pl-6">
           {meeting.participants?.map((participant) => (
             <li key={participant}>{participant}</li>

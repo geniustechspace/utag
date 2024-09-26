@@ -20,7 +20,7 @@ export interface Document {
   document_title: string;
   document_type: string;
   upload_date: Date | any;
-  uploader_id: string; // References a user_id
+  uploader: string; // References a user_id
   file_path: string;
 }
 

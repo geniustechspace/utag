@@ -6,7 +6,7 @@ import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@nextui-org/button";
 import { Input } from "@nextui-org/input";
 import { ElevatedLoading } from "@/components/loading";
-import { EditableField } from "@/components/form-inputs";
+import { EditableField } from "@/components/forms/form-inputs";
 
 
 export default function SettingsPage() {

@@ -5,6 +5,7 @@ import { withLoginRequired } from "@/providers/auth-provider/firebase/provider";
 import { Sidebar } from "@/components/sidebar";
 import { useDocumentModel } from "@/providers/models";
 import { useMemo, useState } from "react";
+import { CreateDocumentForm } from "@/components/forms/document-form";
 
 const DocumentsPageLayout = ({ children }: { children: React.ReactNode }) => {
   const { documentCache } = useDocumentModel();
@@ -24,8 +25,10 @@ const DocumentsPageLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <main className="flex w-full max-w-screen-2xl mx-auto min-h-screen justify-between gap-3">
-        <Sidebar items={sidenavItems} />
-        <section className="w-full px-3 py-6">{children}</section>
+        <section className="w-full px-3 py-6">
+          <CreateDocumentForm />
+          {children}
+        </section>
       </main>
     </>
   );

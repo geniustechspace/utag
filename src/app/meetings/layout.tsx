@@ -15,7 +15,7 @@ export default function MeetingsLayout({ children }: { children: React.ReactNode
   useMemo(() => {
     const meetingArray = Object.values(meetingCache); // Convert the cache into an array
     const items = meetingArray.map((meeting) => ({
-      label: `${meeting.title} @ ${meeting.date.toDate().toDateString()}`,
+      label: `${meeting.title}`,
       href: `${internalUrls.meetings}/${meeting.meeting_id}`,
     }));
     setSidenavItems(items);
