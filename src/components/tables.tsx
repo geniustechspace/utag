@@ -1,53 +1,101 @@
-"use client"
+"use client";
 
+import {
+  Table,
+  TableBody,
+  TableHeader,
+  TableRow,
+  TableColumn,
+  TableCell,
+  getKeyValue,
+} from "@nextui-org/table";
+import { useAuth } from "@/providers/auth-provider";
+import { Promotion, usePromotionModel, useUserModel } from "@/providers/models";
 import { Button } from "@nextui-org/button";
 import { useEffect, useState } from "react";
+import { getFormattedDate } from "@/utils";
 
+interface TableProps<T> {
+  maxRow?: number;
+  label?: string;
+  fields?: string[];
+  filter?: (data: T[]) => T[];
+}
 
-
-export const SalesTable = ({
+export const PromotionsTable = ({
   maxRow,
   label,
   fields,
   filter,
-}: TableProps<Sales>) => {
-  const [transactions, setTransactions] = useState<Sales[] | undefined>(
+}: TableProps<Promotion>) => {
+  const { user } = useAuth();
+  const { getUser } = useUserModel();
+  const { promotionCache, getAllPromotions, filterPromotions } =
+    usePromotionModel();
+
+  const [promotions, setPromotions] = useState<Promotion[] | undefined>(
     undefined,
   );
+  const [userNames, setUserNames] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
-  const TopContent = <h3 className="font-bold">{label ? label : "Sales"} </h3>;
+  const TopContent = (
+    <h3 className="font-bold">{label ? label : "Promotions"}</h3>
+  );
   const BottomContent = <h3 className="font-bold">Recent in stock</h3>;
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!user) return;
       try {
-        const data = await Sales.getAll();
-        maxRow ? setTransactions(data.slice(0, maxRow)) : setTransactions(data);
+        let data: Promotion[];
+        if (
+          ["president", "secretary", "vice president"].includes(
+            user.role.toLowerCase(),
+          )
+        ) {
+          data = await getAllPromotions(maxRow);
+        } else {
+          data = await filterPromotions({ user_id: user.user_id });
+        }
+
+        // Fetch user names for each promotion
+        const userIds = Array.from(new Set(data.map((p) => p.user_id)));
+        const userPromises = userIds.map((user_id) => getUser(user_id));
+        const users = await Promise.all(userPromises);
+
+        const userMap: Record<string, string> = {};
+        users.forEach((user) => {
+          if (user) {
+            userMap[user.user_id] = user.name;
+          }
+        });
+
+        setUserNames(userMap);
+        maxRow ? setPromotions(data.slice(0, maxRow)) : setPromotions(data);
       } catch (e) {
         console.error(e);
-        setError("Failed to load sales");
+        setError("Failed to load promotions");
       }
     };
+
     fetchData();
-  }, [maxRow]);
+  }, [maxRow, user]);
 
   if (error) {
     return <div>{error}</div>;
   }
 
-  if (!transactions) {
-    return <div>Loading sales...</div>;
+  if (!promotions) {
+    return <div>Loading promotions...</div>;
   }
 
   const columns = [
-    { key: "date", label: "Date" },
-    { key: "customer", label: "Customer" },
-    { key: "products", label: "Products (name: qty)" },
-    { key: "totalCost", label: "Total" },
-    { key: "expenses", label: "Expenses" },
-    { key: "payment", label: "Payment" },
-    { key: "delivery", label: "Delivery" },
-    { key: "processedBy", label: "Processed by" },
+    { key: "user_id", label: "User" },
+    { key: "current_rank", label: "Current Rank" },
+    { key: "desired_rank", label: "Desired Rank" },
+    { key: "application_date", label: "Application Date" },
+    { key: "status", label: "Status" },
+    { key: "assessment_score", label: "Assessment Score" },
     { key: "actions", label: "Actions" },
   ];
 
@@ -59,12 +107,9 @@ export const SalesTable = ({
         selectionMode="none"
         aria-label="Stocks table"
         topContent={TopContent}
-        // bottomContent={BottomContent}
         classNames={{
           wrapper:
             "card h-full rounded-md border-emerald-200 bg-transparent shadow-inner drop-shadow-md dark:border-default",
-          table: "",
-          tbody: "overflow-y-auto divide-y card rounded-md",
         }}
       >
         <TableHeader
@@ -76,44 +121,21 @@ export const SalesTable = ({
             <TableColumn key={column.key}>{column.label}</TableColumn>
           )}
         </TableHeader>
-        <TableBody
-          items={transactions}
-          emptyContent={"No rows to display."}
-          className=" "
-        >
-          {(sale) => (
-            <TableRow key={sale.id}>
+        <TableBody items={promotions} emptyContent={"No rows to display."}>
+          {(promotion) => (
+            <TableRow key={promotion.promotion_id}>
               {(columnKey) => (
                 <TableCell>
-                  {columnKey === "date" ? (
-                    sale.date.toDateString()
-                  ) : columnKey === "customer" ? (
-                    sale.customer?.name
-                  ) : columnKey === "products" ? (
-                    <div className="flex flex-wrap gap-1">
-                      {sale.products.map((product) => (
-                        <Chip
-                          key={product.id}
-                          variant="flat"
-                          size="sm"
-                          radius="sm"
-                        >
-                          {product.name} : {product.qty} @ {product.price}
-                        </Chip>
-                      ))}
-                    </div>
-                  ) : columnKey === "totalCost" ? (
-                    sale.getTotalPrice().toFixed(2)
-                  ) : columnKey === "delivery" ? (
-                    sale.delivery?.status
-                  ) : columnKey === "payment" ? (
-                    sale.payment?.amountPaid
+                  {columnKey === "application_date" ? (
+                    getFormattedDate(promotion.application_date)
+                  ) : columnKey === "user_id" ? (
+                    userNames[promotion.user_id] || "Loading..."
                   ) : columnKey === "actions" ? (
-                    <Button size="sm" color="danger" onClick={sale.delete}>
-                      Delete
+                    <Button size="sm" color="primary" onClick={() => null}>
+                      Details
                     </Button>
                   ) : (
-                    getKeyValue(sale, columnKey)
+                    getKeyValue(promotion, columnKey)
                   )}
                 </TableCell>
               )}

@@ -1,9 +1,10 @@
 import { title } from "@/components/primitives";
+import { PromotionsTable } from "@/components/tables";
 
 export default function PromotionsPage() {
   return (
     <div>
-      <h1 className="font-bold">PromotionsPage</h1>
+      <PromotionsTable  />
     </div>
   );
 }

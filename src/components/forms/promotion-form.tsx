@@ -33,7 +33,7 @@ import {
   DropdownMenu,
   DropdownTrigger,
 } from "@nextui-org/dropdown";
-import { Card, CardBody, CardFooter } from "@nextui-org/card";
+import { Card, CardBody, CardFooter, CardHeader } from "@nextui-org/card";
 
 export const CreatePromotionForm = () => {
   const pathname = usePathname();
@@ -41,7 +41,7 @@ export const CreatePromotionForm = () => {
 
   const { user } = useAuth();
   const { createPromotion, getPromotion } = usePromotionModel();
-  const { filterDocuments, getDocument } = useDocumentModel();
+  const { createDocument, filterDocuments, getDocument } = useDocumentModel();
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 
   const [formData, setFormData] = useState<Partial<Promotion>>({
@@ -49,8 +49,9 @@ export const CreatePromotionForm = () => {
     status: "pending",
   });
 
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[] | null>(null);
   const [progress, setProgress] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string>("");
   const [promotion, setPromotion] = useState<Promotion | null>(null);
   const [attachments, setAttachments] = useState<
@@ -143,19 +144,21 @@ export const CreatePromotionForm = () => {
   const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      const newAttachments = Array.from(files).map((file) => ({
+      const _files = Array.from(files);
+      setFiles((prevFiles) =>
+        prevFiles ? [...prevFiles, ..._files] : [..._files],
+      );
+      const newAttachments = _files.map((file) => ({
         document_title: file.name,
         document_type: file.name.split(".").pop() || "",
         file_path: URL.createObjectURL(file), // Temporary URL for preview
-        type: "",
-        purpose: "",
-        awardable_score: "",
       }));
       setUploadedDocuments(newAttachments);
     }
+    // e.target.value = "";
   };
 
-  const handleAttachmentChange = (
+  const handleAttachmentInputChange = (
     index: number,
     field: keyof PromotionAttachment,
     value: string | number,
@@ -197,38 +200,77 @@ export const CreatePromotionForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true)
+
+    console.log("==============================");
+
     if (!formData.current_rank || !formData.desired_rank || !formData.user_id) {
       alert("All fields are required");
       return;
     }
 
-    if (!file) {
-      setErrors("No file selected");
-
-      return;
-    }
-
     try {
-      const fileUrl = await uploadFile(file);
+      let uploadedFileUrls: string[] = [];
 
+      // Upload the files from the `files` array
+      if (files && files.length > 0) {
+        // Upload all files in parallel and collect their download URLs
+        uploadedFileUrls = await Promise.all(
+          files.map(async (file) => {
+            const fileUrl = await uploadFile(file);
+            return fileUrl;
+          }),
+        );
+      }
+
+      // Save the uploaded documents to the database
+      if (uploadedDocuments.length > 0) {
+        await Promise.all(
+          uploadedDocuments.map(async (doc, idx) => {
+            const fileUrl = uploadedFileUrls[idx]; // Get corresponding file URL from uploaded
+            const newDoc = {
+              ...doc,
+              file_path: fileUrl,
+              document_id: `${doc.document_title}@${new Date().toISOString()}`
+                .replace(/[\s:]/g, "-")
+                .toLowerCase(),
+            };
+            await createDocument(newDoc as Document); // Save the document
+            setSelectedDocuments((prev) => [...prev, newDoc]);
+          }),
+        );
+      }
+      
+      // Check if files and their URLs were uploaded correctly
+      if (uploadedFileUrls.length !== files!.length) {
+        setErrors("Some files failed to upload. Please try again.");
+        return;
+      }
+
+      // Create the promotion
       await createPromotion({
         ...(formData as Promotion),
-        promotion_id:
-          `${formData.current_rank}-${formData.desired_rank}@${new Date().toISOString()}`
-            .replace(/[\s:]/g, "-")
-            .toLowerCase(),
+        promotion_id: `${formData.current_rank}-${formData.desired_rank}@${new Date()
+          .toISOString()
+          .replace(/[\s:]/g, "-")
+          .toLowerCase()}`,
+        attachments: selectedDocuments as PromotionAttachment[],
       });
 
-      onClose(); // Close modal after submission
+      // Close the modal, reset form and refresh page
+      onClose();
       setFormData({
         user_id: user?.user_id,
         status: "pending",
       });
-      setFile(null); // Reset file input after submission
+      setFiles(null); // Reset file input after submission
+      setUploadedDocuments([]);
       router.refresh();
     } catch (error) {
       console.error("Error creating promotion:", error);
       setErrors("Failed to create promotion. Try again.");
+    } finally{
+      setLoading(false)
     }
   };
 
@@ -319,6 +361,9 @@ export const CreatePromotionForm = () => {
                     className="pt-4"
                   />
                   <Card className="border-1 border-primary-100">
+                    <CardHeader>
+                      {/* Add a button to remove this attachment */}
+                    </CardHeader>
                     <CardBody>
                       <Textarea
                         label="Purpose"
@@ -333,7 +378,7 @@ export const CreatePromotionForm = () => {
                             "border-primary-500 data-[hover=true]:border-primary font-bold",
                         }}
                         onChange={(e) =>
-                          handleAttachmentChange(
+                          handleAttachmentInputChange(
                             index,
                             "purpose",
                             e.target.value,
@@ -354,7 +399,7 @@ export const CreatePromotionForm = () => {
                               "border-primary-500 data-[hover=true]:border-primary font-bold",
                           }}
                           onChange={(e) =>
-                            handleAttachmentChange(
+                            handleAttachmentInputChange(
                               index,
                               "type",
                               e.target.value,
@@ -374,7 +419,7 @@ export const CreatePromotionForm = () => {
                               "border-primary-500 data-[hover=true]:border-primary font-bold",
                           }}
                           onChange={(e) =>
-                            handleAttachmentChange(
+                            handleAttachmentInputChange(
                               index,
                               "awardable_score",
                               e.target.value,
@@ -394,7 +439,7 @@ export const CreatePromotionForm = () => {
                               "border-primary-500 data-[hover=true]:border-primary font-bold",
                           }}
                           onChange={(e) =>
-                            handleAttachmentChange(
+                            handleAttachmentInputChange(
                               index,
                               "pages",
                               Number(e.target.value),
@@ -403,7 +448,6 @@ export const CreatePromotionForm = () => {
                         />
                       </div>
                     </CardBody>
-                    <CardFooter></CardFooter>
                   </Card>
                 </>
               ))}
@@ -415,7 +459,6 @@ export const CreatePromotionForm = () => {
               <div className="grid grid-cols-2 gap-2 pb-4">
                 {/* Upload File */}
                 <Input
-                  required
                   name="document_title"
                   accept=".pdf,.docx"
                   type="file"
@@ -467,7 +510,7 @@ export const CreatePromotionForm = () => {
               {errors && <p className="text-red-600">{errors}</p>}
               {/* Submit Button */}
               <Button
-                isLoading={progress > 0 && progress < 100}
+                isLoading={loading}
                 type="submit"
                 color="primary"
                 radius="sm"

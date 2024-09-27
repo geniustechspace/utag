@@ -6,6 +6,7 @@ import { Button } from "@nextui-org/button";
 import { FaFilePdf, FaFileWord } from "react-icons/fa";
 
 import { Document, useUserModel } from "@/providers/models";
+import { getFormattedDate } from "@/utils";
 
 interface DocumentCardProps {
   document: Document;
@@ -49,12 +50,6 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
     }
   };
 
-  // Handle different date types
-  const formattedDate =
-    document.upload_date instanceof Date
-      ? document.upload_date.toDateString()
-      : document.upload_date.toDate().toDateString(); // If Firestore Timestamp
-
   return (
     <Card radius="sm" className="w-full shadow-lg">
       <CardHeader className="flex items-center justify-between">
@@ -65,7 +60,9 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
           </Button>
           <div>
             <h6 className="font-bold text-wrap">{document.document_title}</h6>
-            <p className="text-xs text-gray-500">Uploaded on {formattedDate}</p>
+            <p className="text-xs text-gray-500">
+              Uploaded on {getFormattedDate(document.upload_date)}
+            </p>
           </div>
         </div>
       </CardHeader>
