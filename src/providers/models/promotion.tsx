@@ -14,6 +14,15 @@ import {
 import { useState, useEffect, useContext, createContext, useMemo } from "react";
 
 import { db } from "@/config/firebase-config";
+import { Document } from "./document";
+
+export interface PromotionAttachment extends Document {
+  type: string;
+  purpose: string;
+  awardable_score?: string;
+  awarded_score?: string;
+  pages?: number;
+}
 
 export interface Promotion {
   promotion_id: string;
@@ -23,7 +32,7 @@ export interface Promotion {
   application_date: Date | any;
   status: "pending" | "approved" | "rejected" | "under review";
   assessment_score?: number; // Optional, might be undefined at first
-  attachments?: string[]; // URLs of attached documents
+  attachments?: PromotionAttachment[];
 }
 
 interface PromotionModel {
@@ -61,6 +70,8 @@ export const PromotionProvider = ({
 
   // Create promotion with error handling
   const createPromotion = async (promotion: Promotion) => {
+    promotion.application_date = new Date()
+    promotion.status = "pending"
     try {
       const promotionRef = doc(db, "Promotions", promotion.promotion_id);
       const promotionData: Partial<Promotion> = { ...promotion };

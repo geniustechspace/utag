@@ -6,6 +6,7 @@ import { internalUrls } from "@/config/site-config";
 import { withLoginRequired } from "@/providers/auth-provider/firebase/provider";
 import { Sidebar } from "@/components/sidebar";
 import { usePromotionModel } from "@/providers/models";
+import { CreatePromotionForm } from "@/components/forms/promotion-form";
 
 const PromotionsPageLayout = ({ children }: { children: React.ReactNode }) => {
   const { promotionCache } = usePromotionModel();
@@ -26,8 +27,11 @@ const PromotionsPageLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <main className="flex w-full max-w-screen-2xl mx-auto min-h-screen justify-between gap-3">
-        <Sidebar items={sidenavItems} />
-        <section className="w-full px-3 py-6">{children}</section>
+        {/* <Sidebar items={sidenavItems} /> */}
+        <section className="w-full px-3 py-6">
+          <CreatePromotionForm />
+          {children}
+        </section>
       </main>
     </>
   );

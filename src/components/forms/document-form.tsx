@@ -134,7 +134,7 @@ export const CreateDocumentForm = () => {
       });
       // alert("Document added successfully!");
       onClose(); // Close modal after submission
-      setFormData({}); // Reset form
+      setFormData({uploader_id: user?.user_id}); // Reset form
       router.refresh();
     } catch (error) {
       console.error("Error creating document:", error);
