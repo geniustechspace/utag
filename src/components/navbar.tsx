@@ -14,6 +14,7 @@ import { NotificationDropdown } from "./notification";
 
 import { siteConfig } from "@/config/site-config";
 import { UTAGLogo } from "@/components/icons";
+import { SingleThemeSwitch } from "./theme-switch";
 
 export const Navbar = () => {
   return (
@@ -48,6 +49,7 @@ export const Navbar = () => {
       </NavbarContent> */}
 
       <NavbarContent className="" justify="end">
+        <SingleThemeSwitch />
         <NotificationDropdown />
         <UserProfile />
       </NavbarContent>

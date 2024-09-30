@@ -3,8 +3,6 @@ import { PromotionsTable } from "@/components/tables";
 
 export default function PromotionsPage() {
   return (
-    <div>
       <PromotionsTable  />
-    </div>
   );
 }

@@ -17,11 +17,8 @@ import { db } from "@/config/firebase-config";
 import { Document } from "./document";
 
 export interface PromotionAttachment extends Document {
-  type: string;
-  purpose: string;
   awardable_score?: string;
   awarded_score?: string;
-  pages?: number;
 }
 
 export interface Promotion {
@@ -70,8 +67,8 @@ export const PromotionProvider = ({
 
   // Create promotion with error handling
   const createPromotion = async (promotion: Promotion) => {
-    promotion.application_date = new Date()
-    promotion.status = "pending"
+    promotion.application_date = new Date();
+    promotion.status = "pending";
     try {
       const promotionRef = doc(db, "Promotions", promotion.promotion_id);
       const promotionData: Partial<Promotion> = { ...promotion };

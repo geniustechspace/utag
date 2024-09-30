@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardBody, CardFooter } from "@nextui-org/card";
+import { Chip } from "@nextui-org/chip";
 import { Button } from "@nextui-org/button";
 import { FaFilePdf, FaFileWord } from "react-icons/fa";
 
@@ -52,22 +53,31 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
 
   return (
     <Card radius="sm" className="w-full shadow-lg">
-      <CardHeader className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          {/* Icon based on document type */}
-          <Button isIconOnly radius="sm" variant="bordered">
-            {getFileIcon(document.document_type)}
-          </Button>
-          <div>
-            <h6 className="font-bold text-wrap">{document.document_title}</h6>
+      <CardHeader className="flex items-center justify-between gap-3">
+        {/* Icon based on document type */}
+        <Button disabled isIconOnly radius="sm" variant="bordered">
+          {getFileIcon(document.document_title.split(".").pop() || "")}
+        </Button>
+        <div className="w-full">
+          <h6 className="font-bold text-wrap">{document.document_title}</h6>
+          <div className="flex items-center justify-between gap-3">
             <p className="text-xs text-gray-500">
               Uploaded on {getFormattedDate(document.upload_date)}
             </p>
+            <Chip
+              size="sm"
+              radius="sm"
+              color="primary"
+              variant="dot"
+              className="text-xs text-gray-500"
+            >
+              {document.document_type}
+            </Chip>
           </div>
         </div>
       </CardHeader>
 
-      <CardBody className="py-1">
+      <CardBody className="py-0">
         <p className="text-sm">
           Uploaded by <span className="font-medium">{uploader}</span>
         </p>
@@ -79,13 +89,13 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
           color="primary"
           size="sm"
           radius="sm"
-          onClick={() => onDownload && onDownload(document.file_path)}
+          onClick={() => onDownload && onDownload(document.fileUrl)}
         >
           Download
         </Button>
         <Button
           color="danger"
-          variant="ghost"
+          variant="solid"
           size="sm"
           radius="sm"
           onClick={() => onDelete && onDelete(document.document_id)}

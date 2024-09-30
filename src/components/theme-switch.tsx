@@ -4,6 +4,7 @@ import { FC } from "react";
 import { useTheme } from "next-themes";
 import { useIsSSR } from "@react-aria/ssr";
 import { MdBedtime, MdContrast, MdLightMode } from "react-icons/md";
+import { Button } from "@nextui-org/button";
 
 export interface ThemeSwitchProps {
   className?: string;
@@ -48,20 +49,27 @@ export const SingleThemeSwitch: FC<ThemeSwitchProps> = () => {
   const title = `Switch to ${theme === "light" || isSSR ? "dark" : "light"} mode`;
 
   return (
-    <div className="flex justify-between" title={title} aria-label={title}>
+    <Button
+      isIconOnly
+      title={title}
+      aria-label={title}
+      size="sm"
+      radius="full"
+      variant="ghost"
+      className="mx-3"
+      onClick={() => theme === "light" ? setTheme("dark"): setTheme("light")}
+    >
       {theme === "light" ? (
         <MdBedtime
-          size={22}
+          size={20}
           className="cursor-pointer"
-          onClick={() => setTheme("dark")}
         />
       ) : (
         <MdLightMode
-          size={22}
+          size={20}
           className="cursor-pointer"
-          onClick={() => setTheme("light")}
         />
       )}
-    </div>
+    </Button>
   );
 };

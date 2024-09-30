@@ -29,15 +29,17 @@ export function Providers({ children, themeProps }: ProvidersProps) {
       <NextThemesProvider {...themeProps}>
         <UserProvider>
           <AuthProvider>
-            <DocumentProvider>
-              <MeetingProvider>
-                <PromotionProvider>
-                  <FeedbackProvider>
-                    <ElectionProvider>{children}</ElectionProvider>
-                  </FeedbackProvider>
-                </PromotionProvider>
-              </MeetingProvider>
-            </DocumentProvider>
+            <FeedbackProvider>
+              <DocumentProvider>
+                <MeetingProvider>
+                  <PromotionProvider>
+                    <FeedbackProvider>
+                      <ElectionProvider>{children}</ElectionProvider>
+                    </FeedbackProvider>
+                  </PromotionProvider>
+                </MeetingProvider>
+              </DocumentProvider>
+            </FeedbackProvider>
           </AuthProvider>
         </UserProvider>
       </NextThemesProvider>

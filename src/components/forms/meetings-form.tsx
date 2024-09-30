@@ -62,6 +62,7 @@ export const CreateMeetingForm = () => {
   useEffect(() => {
     const fetchFeedback = async () => {
       if (!meeting_id) return; // Ensure meeting_id is available
+
       try {
         const _feedback = await getMeeting(meeting_id);
 
@@ -114,24 +115,22 @@ export const CreateMeetingForm = () => {
   return (
     <>
       <div className="flex justify-between mb-6">
+        <Button
+          as={NextLink}
+          href={internalUrls.home}
+          size="sm"
+          radius="sm"
+          color="primary"
+          variant="flat"
+          startContent={<FiArrowLeftCircle size={18} />}
+          className="font-bold"
+        >
+          Back
+        </Button>
         {pathname === internalUrls.meetings ? (
           <h6 className="font-bold">Meetings</h6>
         ) : (
-          <>
-            <Button
-              as={NextLink}
-              href={internalUrls.meetings}
-              size="sm"
-              radius="sm"
-              color="primary"
-              variant="flat"
-              startContent={<FiArrowLeftCircle size={18} />}
-              className="font-bold"
-            >
-              Back
-            </Button>
-            <h6 className="font-bold">{meeting?.title}</h6>
-          </>
+          <h6 className="font-bold">{meeting?.title}</h6>
         )}
         <Button
           size="sm"
@@ -141,7 +140,7 @@ export const CreateMeetingForm = () => {
           startContent={<FiPlus />}
           onPress={onOpen}
         >
-          New Meeting
+          New meeting
         </Button>
       </div>
 

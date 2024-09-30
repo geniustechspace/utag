@@ -20,9 +20,11 @@ export interface Document {
   document_id: string;
   document_title: string;
   document_type: string;
+  purpose?: string;
+  pages?: number;
   upload_date: Date | any;
   uploader_id: string; // References a user_id
-  file_path: string;
+  fileUrl: string;
 }
 
 interface DocumentModel {

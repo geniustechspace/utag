@@ -1,7 +1,6 @@
 "use client";
 
-import NextLink from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { ReactNode, useState } from "react";
 import { Input } from "@nextui-org/input";
 import { Button } from "@nextui-org/button";
 import {
@@ -11,169 +10,165 @@ import {
   ModalBody,
   useDisclosure,
 } from "@nextui-org/modal";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { FiArrowLeftCircle, FiPlus } from "react-icons/fi";
-import { usePathname, useRouter } from "next/navigation";
-
-import { Document, useDocumentModel } from "@/providers/models";
+import { FiTrash2 } from "react-icons/fi";
+import { uploadToStorage } from "@/providers/storage"; // Ensure this handles multiple file uploads
+import { useDocumentModel } from "@/providers/models";
 import { useAuth } from "@/providers/auth-provider";
-import { storage } from "@/config/firebase-config";
-import { internalUrls } from "@/config/site-config";
+import { SelectDocumentType } from "../inputs";
 
-export const CreateDocumentForm = () => {
-  const pathname = usePathname();
-  const router = useRouter();
+interface FilePreview {
+  file: File;
+  filename: string;
+  error?: string;
+  fileUrl?: string;
+}
 
+interface NewDocumentFormProps {
+  multiple?: boolean;
+  buttonText?: string;
+  onSubmit?: (documnentIds: string[]) => void;
+  size?: "sm" | "md" | "lg";
+  startContent?: ReactNode;
+  className?: string;
+}
+
+export const NewDocumentForm = ({
+  buttonText,
+  onSubmit,
+  className,
+  multiple = false,
+  size = "sm",
+  startContent,
+}: NewDocumentFormProps) => {
   const { user } = useAuth();
-  const { createDocument } = useDocumentModel(); // from your DocumentProvider
+  const { createDocument } = useDocumentModel();
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 
-  const [formData, setFormData] = useState<Partial<Document>>({
-    uploader_id: user?.user_id,
-  });
-  const [file, setFile] = useState<File | null>(null);
+  const [filesPreview, setFilesPreview] = useState<FilePreview[]>([]);
+  const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [errors, setErrors] = useState<string>("");
-  const { getDocument } = useDocumentModel();
 
-  const [document, setDocument] = useState<Document | null>(null);
-
-  // Correct way to get the last segment of the URL path
-  const document_id = useMemo(() => pathname.split("/").pop(), [pathname]);
-
-  useEffect(() => {
-    const fetchDocument = async () => {
-      if (!document_id) return; // Ensure document_id is available
-      try {
-        const _document = await getDocument(document_id);
-
-        setDocument(_document);
-      } catch (err) {
-        console.error("Error fetching document:", err);
-      }
-    };
-
-    fetchDocument();
-  }, [document_id]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const _files = e.target.files;
+    if (!_files) return;
 
-    if (_files && _files[0]) {
-      const fileName = _files[0].name;
-      const fileType = fileName.split(".").pop() || ""; // Get file extension
+    const newFiles = Array.from(_files).map((file) => ({
+      file,
+      filename: file.name,
+    }));
 
-      setFile(_files[0]);
-      setFormData((prev) => ({
-        ...prev,
-        document_title: fileName,
-        document_type: fileType,
-      }));
-    }
+    setFilesPreview((prev) => [...prev, ...newFiles]);
   };
 
-  const uploadImage = async (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const storageRef = ref(storage, `Documemts/${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          setProgress((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-        },
-        (error) => {
-          setErrors(error.message);
-          reject(error);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            resolve(downloadURL);
-          });
-        },
-      );
+  const handleFileNameChange = (index: number, newName: string) => {
+    setFilesPreview((prev) => {
+      const updatedFiles = [...prev];
+      updatedFiles[index].filename = newName;
+      return updatedFiles;
     });
+  };
+
+  const handleFileRemove = (index: number) => {
+    setFilesPreview((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    if (
-      !formData.document_title ||
-      !formData.document_type ||
-      !formData.uploader_id
-    ) {
-      alert("All fields are required");
+    const uploaderId = user?.user_id;
 
+    if (!uploaderId) {
+      alert("No user found, Login to upload a file");
+      setLoading(false);
       return;
     }
-    // return
 
-    if (!file) {
-      setErrors("No file selected");
-
+    if (!filesPreview.length) {
+      setErrors("No files selected");
+      setLoading(false);
       return;
     }
 
     try {
-      const fileUrl = await uploadImage(file);
+      // const uploadedUrls = [];
+      const uploadedIds = [];
 
-      await createDocument({
-        ...(formData as Document),
-        document_id: `${formData.document_title}@${new Date().toISOString()}`
-          .replace(/[\s:]/g, "-")
-          .toLowerCase(),
-        file_path: fileUrl,
-        upload_date: new Date(),
-      });
-      // alert("Document added successfully!");
+      for (let i = 0; i < filesPreview.length; i++) {
+        const { file, filename } = filesPreview[i];
+
+        try {
+          const fileUrl = await uploadToStorage(
+            file,
+            (snapshot) => {
+              setProgress(
+                (snapshot.bytesTransferred / snapshot.totalBytes) * 100,
+              );
+            },
+            (error) => {
+              setErrors(error.message);
+              setFilesPreview((prev) => {
+                const updatedFiles = [...prev];
+                updatedFiles[i].error = error.message;
+                return updatedFiles;
+              });
+            },
+          );
+
+          // uploadedUrls.push(fileUrl);
+
+          const documentId = `${filename}@${new Date().toISOString()}`
+            .replace(/[\s:]/g, "-")
+            .toLowerCase();
+
+          await createDocument({
+            document_id: documentId,
+            uploader_id: uploaderId,
+            document_title: filename,
+            document_type: "",
+            fileUrl: fileUrl,
+            upload_date: new Date(),
+          });
+
+          uploadedIds.push(documentId);
+
+          setFilesPreview((prev) => {
+            const updatedFiles = [...prev];
+            updatedFiles[i].fileUrl = fileUrl;
+            updatedFiles[i].error = undefined;
+            return updatedFiles;
+          });
+        } catch (error) {
+          console.error("Upload failed for file:", error);
+        }
+      }
+
+      onSubmit && onSubmit(uploadedIds); // Return uploaded file URLs
+      // setFormData({ uploader_id: user?.user_id }); // Reset form
+      setFilesPreview([]);
+      setLoading(false);
       onClose(); // Close modal after submission
-      setFormData({uploader_id: user?.user_id}); // Reset form
-      router.refresh();
     } catch (error) {
-      console.error("Error creating document:", error);
+      setErrors(String(error));
     }
   };
 
   return (
     <>
-      <div className="flex justify-between mb-6">
-        <Button
-          as={NextLink}
-          href={internalUrls.home}
-          size="sm"
-          radius="sm"
-          color="primary"
-          variant="flat"
-          startContent={<FiArrowLeftCircle size={18} />}
-          className="font-bold"
-        >
-          Back
-        </Button>
-        {pathname === internalUrls.documents ? (
-          <h6 className="font-bold">Documents</h6>
-        ) : (
-          <h6 className="font-bold">{document?.document_title}</h6>
-        )}
-        <Button
-          size="sm"
-          radius="sm"
-          color="primary"
-          variant="ghost"
-          startContent={<FiPlus />}
-          onPress={onOpen}
-        >
-          New Document
-        </Button>
-      </div>
+      <Button
+        size={size}
+        radius="sm"
+        color="primary"
+        variant="ghost"
+        startContent={startContent}
+        onPress={onOpen}
+        className={className}
+      >
+        {buttonText ? buttonText : "New Document"}
+      </Button>
 
-      <Modal size="xl" isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal size="5xl" isOpen={isOpen} onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
             <>
@@ -182,51 +177,78 @@ export const CreateDocumentForm = () => {
               </ModalHeader>
               <ModalBody>
                 <form className="space-y-6" onSubmit={handleSubmit}>
-                  {/* Document Title */}
+                  {/* Upload Files */}
                   <Input
                     required
-                    label="Document Title"
-                    name="document_title"
-                    placeholder="Enter document title"
-                    value={formData.document_title}
-                    radius="sm"
-                    color="primary"
-                    variant="underlined"
-                    classNames={{
-                      inputWrapper:
-                        "border-primary-500 data-[hover=true]:border-primary font-bold",
-                    }}
-                    onChange={handleInputChange}
-                  />
-
-                  {/* Upload File */}
-                  <Input
-                    required
-                    name="document_title"
-                    accept=".pdf,.docx"
+                    multiple={multiple}
+                    name="document_files"
+                    accept=".pdf,.docx,.doc"
                     type="file"
                     size="lg"
                     radius="sm"
                     color="primary"
                     variant="bordered"
-                    className="file"
                     classNames={{
-                      mainWrapper: "mt-6",
                       inputWrapper:
-                        "h-32 border-primary-500 data-[hover=true]:border-primary font-bold",
+                        "h-16 border-primary-500 data-[hover=true]:border-primary font-bold",
                     }}
-                    onChange={handleFileChange}
+                    onChange={handleFilesChange}
                   />
+
+                  {/* File Previews with Editable File Names */}
+                  <div className="mt-2 grid lg:grid-cols-2 items-start gap-3">
+                    {filesPreview.map((filePreview, index) => (
+                      <div
+                        key={index}
+                        className="flex flex-nowrap items-center justify-between gap-2"
+                      >
+                        
+                        <SelectDocumentType />
+
+                        {/* Document Title */}
+                        <Input
+                          required
+                          label="Document name"
+                          labelPlacement="outside"
+                          name="document_title"
+                          value={filePreview.filename}
+                          radius="sm"
+                          color="primary"
+                          variant="bordered"
+                          classNames={{
+                            inputWrapper:
+                              "border-primary-500 data-[hover=true]:border-primary font-bold pe-0 overflow-hidden",
+                            label: "text-sm text-primary",
+                          }}
+                          onChange={(e) =>
+                            handleFileNameChange(index, e.target.value)
+                          }
+                          endContent={
+                            <Button
+                              isIconOnly
+                              size="md"
+                              radius="none"
+                              color="danger"
+                              variant="solid"
+                              onPress={() => handleFileRemove(index)}
+                            >
+                              <FiTrash2 />
+                            </Button>
+                          }
+                        />
+                      </div>
+                    ))}
+                  </div>
 
                   {/* Submit Button */}
                   <Button
-                    isLoading={progress > 0 && progress < 100}
+                    isLoading={loading}
                     type="submit"
                     color="primary"
                     radius="sm"
                     className="w-full"
                   >
-                    Submit
+                    {loading ? `Saving ....${progress.toFixed(0)}` : "Submit"}
                   </Button>
                 </form>
               </ModalBody>

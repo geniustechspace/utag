@@ -9,7 +9,7 @@ import { Document, DocumentProvider, useDocumentModel } from "./document";
 import { Election, ElectionProvider, useElectionModel, Vote } from "./election";
 import { Feedback, FeedbackProvider, useFeedbackModel } from "./feedback";
 import { Meeting, MeetingProvider, useMeetingModel } from "./meeting";
-import { Promotion, PromotionProvider, usePromotionModel } from "./promotion";
+import { Promotion, PromotionAttachment, PromotionProvider, usePromotionModel } from "./promotion";
 import { User, UserProvider, useUserModel } from "./user-profile";
 
 export {
@@ -35,6 +35,7 @@ export type {
     Feedback,
     Meeting,
     Promotion,
+    PromotionAttachment,
     User,
     Vote,
 };

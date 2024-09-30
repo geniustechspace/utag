@@ -10,6 +10,7 @@ export const internalUrls = {
     meetings: "/meetings",
     documents: "/documents",
     promotions: "/promotions",
+    newPromotion: "/promotions/new",
     notifications: "/notifications",
     constitution: "/constitution",
 };

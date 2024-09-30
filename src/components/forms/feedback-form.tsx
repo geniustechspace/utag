@@ -124,25 +124,23 @@ export const CreateFeedbackForm = () => {
 
   return (
     <>
-      <div className="flex flex-wrap justify-between mb-6">
+      <div className="flex justify-between mb-6">
+        <Button
+          as={NextLink}
+          href={internalUrls.home}
+          size="sm"
+          radius="sm"
+          color="primary"
+          variant="flat"
+          startContent={<FiArrowLeftCircle size={18} />}
+          className="font-bold"
+        >
+          Back
+        </Button>
         {pathname === internalUrls.qna ? (
-          <h6 className="font-bold">Questions and discussions</h6>
+          <h6 className="font-bold">Feedbacks</h6>
         ) : (
-          <>
-            <Button
-              as={NextLink}
-              href={internalUrls.qna}
-              size="sm"
-              radius="sm"
-              color="primary"
-              variant="flat"
-              startContent={<FiArrowLeftCircle size={18} />}
-              className="font-bold"
-            >
-              Back
-            </Button>
-            <h6 className="font-bold">{feedback?.subject}</h6>
-          </>
+          <h6 className="font-bold">{feedback?.subject}</h6>
         )}
         <Button
           size="sm"
@@ -150,10 +148,9 @@ export const CreateFeedbackForm = () => {
           color="primary"
           variant="ghost"
           startContent={<FiPlus />}
-          className=""
           onPress={onOpen}
         >
-          New
+          New Feedback
         </Button>
       </div>
 
