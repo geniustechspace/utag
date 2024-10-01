@@ -10,6 +10,7 @@ import {
   where,
   onSnapshot,
   limit,
+  Timestamp,
 } from "firebase/firestore";
 import { useState, useEffect, useContext, createContext, useMemo } from "react";
 
@@ -19,12 +20,13 @@ export interface Meeting {
   meeting_id: string;
   title: string;
   agenda: string;
-  date?: Date | any;
-  time?: string;
+  date: Timestamp | Date | any; // Now includes both date and time
   location?: string;
   minutes?: string;
-  participants?: string[]; // Array of participant user IDs
+  guestAndSpeakers?: string[];
+  attendees?: string[]; // Array of participant user IDs
 }
+
 
 interface MeetingModel {
   createMeeting: (meeting: Meeting) => Promise<void>;

@@ -83,9 +83,9 @@ export const withLoginRequired = <P extends object>(
     useLoginRequired();
     const { authUser, loading } = useAuth();
 
-    if (loading || !authUser) {
-      return <ElevatedLoading />;
-    }
+    // if (loading || !authUser) {
+    //   return <ElevatedLoading />;
+    // }
 
     return <Component {...props} />;
   };

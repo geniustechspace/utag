@@ -65,8 +65,6 @@ export const CreateFeedbackForm = () => {
   // Correct way to get the last segment of the URL path
   const feedback_id = useMemo(() => pathname.split("/").pop(), [pathname]);
 
-  console.log(feedback_id);
-
   useEffect(() => {
     const fetchFeedback = async () => {
       if (!feedback_id) return; // Ensure feedback_id is available

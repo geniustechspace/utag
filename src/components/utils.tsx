@@ -1,3 +1,4 @@
+import { FaFilePdf, FaFileWord } from "react-icons/fa";
 import { twMerge } from "tailwind-merge";
 
 interface DividerProps {
@@ -16,3 +17,15 @@ export function Divider({ textContent, className }: DividerProps) {
     </div>
   );
 }
+
+// Helper function to get the correct file icon based on document type
+export const getFileIcon = (type: string) => {
+  switch (type.toLowerCase()) {
+    case "pdf":
+      return <FaFilePdf className="text-red-500" size={24} />;
+    case "docx":
+      return <FaFileWord className="text-blue-500" size={24} />;
+    default:
+      return <FaFileWord size={24} />;
+  }
+};

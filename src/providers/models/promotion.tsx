@@ -19,11 +19,13 @@ import { Document } from "./document";
 export interface PromotionAttachment extends Document {
   awardable_score?: string;
   awarded_score?: string;
+  sppCount?: string;
 }
 
 export interface Promotion {
   promotion_id: string;
   user_id: string;
+  cvUrl: string;
   current_rank: string;
   desired_rank: string;
   application_date: Date | any;

@@ -1,12 +1,18 @@
 "use client";
 
-import { ElevatedLoading } from "@/components/loading";
-import { useAuth } from "@/providers/auth-provider";
-import { Promotion, usePromotionModel } from "@/providers/models";
+import { PromotionDocumentsDetails } from "@/components/cards/promotion-docs-details";
+import { ComponentLoading, ElevatedLoading } from "@/components/loading";
+import { getFileIcon } from "@/components/utils";
+import {
+  Promotion,
+  usePromotionModel,
+  User,
+  useUserModel,
+} from "@/providers/models";
+import { Avatar } from "@nextui-org/avatar";
 import { Button } from "@nextui-org/button";
-import { Card, CardBody } from "@nextui-org/card";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { Card, CardBody, CardFooter, CardHeader } from "@nextui-org/card";
+import { Chip } from "@nextui-org/chip";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -14,10 +20,11 @@ const PromotionDetailPage = () => {
   const pathname = usePathname();
   const router = useRouter();
 
-  const { user } = useAuth();
+  const { getUser } = useUserModel();
   const { getPromotion } = usePromotionModel();
 
   const [promotion, setPromotion] = useState<Promotion | null>(null);
+  const [applicationUser, setApplicationUser] = useState<User | null>(null);
 
   // get the last segment of the URL path
   const promotion_id = useMemo(() => pathname.split("/").pop(), [pathname]);
@@ -28,7 +35,17 @@ const PromotionDetailPage = () => {
       setPromotion(_promotion);
     };
     fetchPromotion();
-  }, []);
+  }, [promotion_id]);
+
+  useEffect(() => {
+    const fetchApplicationUser = async () => {
+      if (!promotion) return;
+      const _user = await getUser(promotion.user_id);
+      setApplicationUser(_user);
+    };
+
+    fetchApplicationUser();
+  }, [promotion]);
 
   const handleDownloadPDF = () => {
     // const doc = new jsPDF();
@@ -68,51 +85,83 @@ const PromotionDetailPage = () => {
     // doc.save("promotion-details.pdf");
   };
 
-  if (!promotion) return router.replace("/not-found");
+  if (!promotion) {
+    return <ComponentLoading message="Loading promotion details ..." />;
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center p-6">
-      <Card className="w-full max-w-3xl">
-        <CardBody>
-          <p className="p-center">Promotion Details</p>
-          <div className="mt-4">
-            <p>Promotion ID: {promotion.promotion_id}</p>
-            <p>User ID: {promotion.user_id}</p>
-            <p>Current Rank: {promotion.current_rank}</p>
-            <p>Desired Rank: {promotion.desired_rank}</p>
-            <p>
-              Application Date:{" "}
-              {new Date(promotion.application_date).toLocaleDateString()}
-            </p>
-            <p>Status: {promotion.status}</p>
-            <p>Assessment Score: {promotion.assessment_score ?? "N/A"}</p>
-
-            <p className="mt-6">Attachments:</p>
-            {promotion.attachments?.length ? (
-              <ul className="list-disc ml-6">
-                {promotion.attachments.map((attachment, index) => (
-                  <li key={index}>
-                    <p>
-                      {attachment.document_type} - {attachment.purpose} (
-                      <a href={attachment.document_id} className="p-blue-500">
-                        View Attachment
-                      </a>
-                      )
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No attachments available.</p>
-            )}
+    <Card radius="sm" className="">
+      <CardHeader className="flex-row justify-between px-6">
+        <div className="flex items-center gap-3">
+          <Avatar size="lg">{applicationUser?.name[0].toUpperCase()}</Avatar>
+          <div>
+            <h2 className="text-xl font-bold">
+              {applicationUser?.name || promotion.current_rank}
+            </h2>
+            <h3 className="text-default-500">
+              Desired Rank: {promotion.desired_rank}
+            </h3>
           </div>
-        </CardBody>
-      </Card>
+        </div>
 
-      <Button className="mt-6" onClick={handleDownloadPDF}>
-        Download PDF
-      </Button>
-    </div>
+        <div className="mt-4 gap-6">
+          <div className="flex justify-between gap-2">
+            <span className="font-semibold">Application Date:</span>
+            <span>
+              {promotion.application_date.toDate().toLocaleDateString()}
+            </span>
+          </div>
+          <div className="flex justify-between gap-2">
+            <span className="font-semibold">Assessment score:</span>
+            {promotion.assessment_score || 67}
+          </div>
+          <div className="flex justify-between gap-2">
+            <span className="font-semibold">Status:</span>
+            <Chip
+              size="sm"
+              radius="sm"
+              variant="dot"
+              color={promotion.status === "approved" ? "success" : "warning"}
+            >
+              {promotion.status}
+            </Chip>
+          </div>
+          {promotion.assessment_score && (
+            <div className="flex justify-between">
+              <span className="font-semibold">Assessment Score:</span>
+              <span>{promotion.assessment_score}</span>
+            </div>
+          )}
+        </div>
+      </CardHeader>
+
+      <CardBody>
+        <h3 className="text-lg font-bold text-center uppercase">
+          Supporting documents
+        </h3>
+        {promotion.attachments && promotion.attachments.length > 0 && (
+          <PromotionDocumentsDetails attachments={promotion.attachments} />
+        )}
+      </CardBody>
+
+      <CardFooter className="gap-3 justify-end">
+        <Button
+          radius="sm"
+          color="primary"
+          variant="ghost"
+          startContent={getFileIcon(promotion.cvUrl.split(".").pop() || "")}
+          className="ps-1"
+        >
+          Download CV / Resume
+        </Button>
+        <Button radius="sm" color="primary" variant="ghost">
+          Download documents
+        </Button>
+        <Button radius="sm" color="primary" variant="ghost">
+          Download aplication form
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 

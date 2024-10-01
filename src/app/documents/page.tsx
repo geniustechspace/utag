@@ -4,13 +4,15 @@ import { useEffect } from "react";
 
 import { DocumentCard } from "@/components/cards/document-card";
 import { useDocumentModel } from "@/providers/models";
+import { useAuth } from "@/providers/auth-provider";
 
 export default function DocumentsPage() {
-  const { documentCache, getAllDocuments, deleteDocument } = useDocumentModel();
+  const { user } = useAuth();
+  const { documentCache, deleteDocument, filterDocuments } = useDocumentModel();
 
   useEffect(() => {
     const fetchDocuments = async () => {
-      await getAllDocuments();
+      await filterDocuments({ uploader_id: user?.user_id });
     };
 
     fetchDocuments();

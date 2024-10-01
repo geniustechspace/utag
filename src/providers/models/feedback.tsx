@@ -23,7 +23,7 @@ export interface Feedback {
   message: string;
   attachments?: string[]; // URLs of attached files
   target_group:
-    | "Members"
+    | "Member"
     | "Secretary"
     | "President"
     | "Treasurer"

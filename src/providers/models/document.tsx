@@ -111,6 +111,9 @@ export const DocumentProvider = ({
       setDocumentCache((prev) => {
         const updatedCache = { ...prev };
 
+        const documentFileUrl = updatedCache[document_id].fileUrl;
+        // deleteStorageFile documentFileUrl
+
         delete updatedCache[document_id];
 
         return updatedCache;

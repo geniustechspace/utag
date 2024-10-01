@@ -21,6 +21,8 @@ export interface User {
   name: string;
   email: string;
   password?: string;
+  contact?: string;
+  address?: string;
   role:
     | "Member"
     | "Secretary"
@@ -28,10 +30,8 @@ export interface User {
     | "Treasurer"
     | "Vice President"
     | "Electoral Commissioner";
-  department?: string;
-  contact?: string;
-  address?: string;
   institution?: string;
+  department?: string;
   dateJoined?: Date | any;
   slug?: string;
 }

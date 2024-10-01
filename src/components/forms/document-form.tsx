@@ -14,13 +14,14 @@ import { FiTrash2 } from "react-icons/fi";
 import { uploadToStorage } from "@/providers/storage"; // Ensure this handles multiple file uploads
 import { useDocumentModel } from "@/providers/models";
 import { useAuth } from "@/providers/auth-provider";
-import { SelectDocumentType } from "../inputs";
+import { FilePreviewInput, SelectDocumentType } from "../inputs";
 
 interface FilePreview {
   file: File;
   filename: string;
   error?: string;
   fileUrl?: string;
+  document_type?: string
 }
 
 interface NewDocumentFormProps {
@@ -69,6 +70,14 @@ export const NewDocumentForm = ({
     });
   };
 
+  const handleDocTypeChange = (index: number, newType: string) => {
+    setFilesPreview((prev) => {
+      const updatedFiles = [...prev];
+      updatedFiles[index].document_type = newType;
+      return updatedFiles;
+    });
+  };
+
   const handleFileRemove = (index: number) => {
     setFilesPreview((prev) => prev.filter((_, i) => i !== index));
   };
@@ -92,11 +101,10 @@ export const NewDocumentForm = ({
     }
 
     try {
-      // const uploadedUrls = [];
       const uploadedIds = [];
 
       for (let i = 0; i < filesPreview.length; i++) {
-        const { file, filename } = filesPreview[i];
+        const { file, filename, document_type } = filesPreview[i];
 
         try {
           const fileUrl = await uploadToStorage(
@@ -116,8 +124,6 @@ export const NewDocumentForm = ({
             },
           );
 
-          // uploadedUrls.push(fileUrl);
-
           const documentId = `${filename}@${new Date().toISOString()}`
             .replace(/[\s:]/g, "-")
             .toLowerCase();
@@ -126,7 +132,7 @@ export const NewDocumentForm = ({
             document_id: documentId,
             uploader_id: uploaderId,
             document_title: filename,
-            document_type: "",
+            document_type: document_type || "Others",
             fileUrl: fileUrl,
             upload_date: new Date(),
           });
@@ -179,7 +185,6 @@ export const NewDocumentForm = ({
                 <form className="space-y-6" onSubmit={handleSubmit}>
                   {/* Upload Files */}
                   <Input
-                    required
                     multiple={multiple}
                     name="document_files"
                     accept=".pdf,.docx,.doc"
@@ -202,39 +207,18 @@ export const NewDocumentForm = ({
                         key={index}
                         className="flex flex-nowrap items-center justify-between gap-2"
                       >
-                        
-                        <SelectDocumentType />
+                        <SelectDocumentType
+                          onSelectionChange={(selection) =>
+                            handleDocTypeChange(index, selection.currentKey || "")
+                          }
+                        />
 
-                        {/* Document Title */}
-                        <Input
-                          required
-                          label="Document name"
-                          labelPlacement="outside"
-                          name="document_title"
+                        <FilePreviewInput
                           value={filePreview.filename}
-                          radius="sm"
-                          color="primary"
-                          variant="bordered"
-                          classNames={{
-                            inputWrapper:
-                              "border-primary-500 data-[hover=true]:border-primary font-bold pe-0 overflow-hidden",
-                            label: "text-sm text-primary",
-                          }}
-                          onChange={(e) =>
+                          onInputChange={(e) =>
                             handleFileNameChange(index, e.target.value)
                           }
-                          endContent={
-                            <Button
-                              isIconOnly
-                              size="md"
-                              radius="none"
-                              color="danger"
-                              variant="solid"
-                              onPress={() => handleFileRemove(index)}
-                            >
-                              <FiTrash2 />
-                            </Button>
-                          }
+                          endContentOnPress={() => handleFileRemove(index)}
                         />
                       </div>
                     ))}

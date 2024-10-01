@@ -8,7 +8,7 @@ export const uploadToStorage = async (
     onError?: (error: StorageError) => void
 ): Promise<string> => {
     return new Promise((resolve, reject) => {
-        const storageRef = ref(storage, `product images/${file.name}`);
+        const storageRef = ref(storage, `Documents/${file.name}`);
         const uploadTask = uploadBytesResumable(storageRef, file);
 
         uploadTask.on(

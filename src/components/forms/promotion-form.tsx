@@ -12,7 +12,7 @@ import {
 } from "@/providers/models";
 import { useAuth } from "@/providers/auth-provider";
 import { PromotionAttachment } from "@/providers/models/promotion";
-import { Divider } from "../utils";
+import { Divider, getFileIcon } from "../utils";
 import {
   Dropdown,
   DropdownItem,
@@ -22,8 +22,8 @@ import {
 import { Card, CardBody, CardFooter, CardHeader } from "@nextui-org/card";
 import { NewDocumentForm } from "./document-form";
 import { FiTrash2 } from "react-icons/fi";
-import { Select, SelectItem } from "@nextui-org/select";
-import { SelectDocumentType } from "../inputs";
+import { FilePreviewInput, SelectDocumentType } from "../inputs";
+import { uploadToStorage } from "@/providers/storage";
 
 export const NewPromotionForm = () => {
   const router = useRouter();
@@ -36,12 +36,11 @@ export const NewPromotionForm = () => {
     user_id: user?.user_id,
     status: "pending",
   });
+  const [cv, setCv] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [errors, setErrors] = useState<string>("");
   const [attachments, setAttachments] = useState<
-    Partial<PromotionAttachment>[]
-  >([]);
-  const [selectedDocuments, setSelectedDocuments] = useState<
     Partial<PromotionAttachment>[]
   >([]);
   const [userDocuments, setUserDocuments] = useState<Document[]>([]);
@@ -53,26 +52,27 @@ export const NewPromotionForm = () => {
 
   // fetch Selected Documents
   useEffect(() => {
-    const fetchSelectedDocuments = async () => {
+    const fetchSelectedAttachments = async () => {
       const selectedDocs = await Promise.all(
         Array.from(selectedDocumentIds).map((id) => getDocument(id as string)),
       );
       const newAttachments = selectedDocs.map((doc) => ({
+        document_id: doc?.document_id || "",
         document_title: doc?.document_title || "",
         document_type: doc?.document_type || "",
         fileUrl: doc?.fileUrl || "",
-        purpose: "",
+        purpose: doc?.purpose || "",
         awardable_score: "",
       }));
       const titles = selectedDocs.map((doc) => doc?.document_title);
-      setSelectedDocuments(newAttachments);
+      setAttachments(newAttachments);
       setSelectedDocumentNames(titles.join(", "));
     };
 
     if (Array.from(selectedDocumentIds).length > 0) {
-      fetchSelectedDocuments();
+      fetchSelectedAttachments();
     } else {
-      setSelectedDocuments([]);
+      setAttachments([]);
       setSelectedDocumentNames("");
     }
   }, [selectedDocumentIds, getDocument]);
@@ -109,33 +109,93 @@ export const NewPromotionForm = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleFileNameChange = (index: number, newName: string) => {
+    setAttachments((prev) => {
+      const updatedFiles = [...prev];
+      updatedFiles[index].document_title = newName;
+      return updatedFiles;
+    });
+  };
+
+  const handleSppCountChange = (index: number, newCount: string) => {
+    setAttachments((prev) => {
+      const updatedFiles = [...prev];
+      updatedFiles[index].sppCount = newCount;
+      return updatedFiles;
+    });
+  };
+
+  const handleAttachmentRemove = (document_id: string) => {
+    setSelectedDocumentIds((prev) =>
+      Array.from(prev).filter((id, _) => id !== document_id),
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    if (!formData.current_rank || !formData.desired_rank || !formData.user_id) {
-      alert("All fields are required");
+    if (!user) {
+      setErrors("Login to proceed");
+      setLoading(false);
+      return;
+    }
+
+    formData.user_id = user.user_id;
+
+    if (!cv) {
+      alert("CV / Resume required");
+      setLoading(false);
+      return;
+    }
+
+    if (attachments.length < 6) {
+      setErrors("At least 6 attachments are required.");
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.current_rank) {
+      alert("Current rank required");
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.desired_rank) {
+      alert("Desired rank required");
       setLoading(false);
       return;
     }
 
     try {
+      const cvUrl = await uploadToStorage(
+        cv,
+        (snapshot) => {
+          setProgress((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+        },
+        (error) => {
+          setErrors(error.message);
+        },
+      );
+
       // Create the promotion
       await createPromotion({
         ...(formData as Promotion),
+        cvUrl: cvUrl,
         promotion_id:
           `${formData.current_rank}-${formData.desired_rank}@${new Date().toISOString()}`
             .replace(/[\s:]/g, "-")
             .toLowerCase(),
-        attachments: selectedDocuments as PromotionAttachment[],
+        attachments: attachments as PromotionAttachment[],
       });
 
       setFormData({
         user_id: user?.user_id,
         status: "pending",
       });
+      setAttachments([]);
 
-      router.refresh();
+      router.back();
     } catch (error) {
       console.error("Error creating promotion:", error);
       setErrors("Failed to create promotion. Try again.");
@@ -154,14 +214,36 @@ export const NewPromotionForm = () => {
               <span className="text-sm font-bold text-primary">
                 Upload You CV / Resume
               </span>
-              <NewDocumentForm
-                size="md"
-                buttonText="Upload You CV / Resume"
-                // className="mt-6"
-                onSubmit={(ids) =>
-                  setSelectedDocumentIds((prev) => new Set([...prev, ...ids]))
-                }
-              />
+
+              {/* Document Title */}
+              {cv ? (
+                <FilePreviewInput
+                  value={cv.name}
+                  endContentOnPress={() => setCv(null)}
+                />
+              ) : (
+                <Input
+                  required
+                  name="document_files"
+                  accept=".pdf,.docx,.doc"
+                  type="file"
+                  size="md"
+                  radius="sm"
+                  color="primary"
+                  variant="bordered"
+                  classNames={{
+                    inputWrapper:
+                      "border-primary-500 data-[hover=true]:border-primary font-bold",
+                  }}
+                  onChange={(e) =>
+                    setCv((_) => {
+                      const _files = e.target.files;
+                      if (!_files) return null;
+                      return _files[0];
+                    })
+                  }
+                />
+              )}
             </div>
             <Input
               required
@@ -224,12 +306,37 @@ export const NewPromotionForm = () => {
                     inputWrapper:
                       "border-primary-500 data-[hover=true]:border-primary font-bold pe-0 overflow-hidden",
                   }}
-                  // onChange={(e) =>
-                  //   handleFileNameChange(index, e.target.value)
-                  // }
+                  onChange={(e) => handleFileNameChange(index, e.target.value)}
                 />
 
-                <SelectDocumentType />
+                <SelectDocumentType
+                  selection={[attachment.document_type] as Iterable<string>}
+                  onSelectionChange={(selection) =>
+                    handleAttachmentInputChange(
+                      index,
+                      "document_type",
+                      selection.currentKey || "",
+                    )
+                  }
+                />
+
+                <Input
+                  required
+                  name="sppCount"
+                  value={attachment.sppCount}
+                  radius="sm"
+                  color="primary"
+                  variant="bordered"
+                  className="max-w-32"
+                  startContent={
+                    <span className="font-semibold text-xs">SPP: </span>
+                  }
+                  classNames={{
+                    inputWrapper:
+                      "border-primary-500 data-[hover=true]:border-primary font-bold pe-0 overflow-hidden",
+                  }}
+                  onChange={(e) => handleSppCountChange(index, e.target.value)}
+                />
 
                 <Button
                   isIconOnly
@@ -238,7 +345,9 @@ export const NewPromotionForm = () => {
                   color="danger"
                   variant="solid"
                   className="ms-auto absolute top-3 right-2"
-                  // onPress={() => handleFileRemove(index)}
+                  onPress={() =>
+                    handleAttachmentRemove(attachment.document_id!)
+                  }
                 >
                   <FiTrash2 />
                 </Button>
@@ -321,7 +430,7 @@ export const NewPromotionForm = () => {
           className="ms-auto"
           onClick={handleSubmit}
         >
-          Submit
+          {loading ? `Saving ${progress - 1}%` : "Submit"}
         </Button>
       </CardFooter>
     </Card>

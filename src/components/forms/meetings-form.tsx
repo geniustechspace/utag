@@ -28,6 +28,9 @@ const initialMeetingForm = {
   meeting_id: "",
   title: "",
   agenda: "",
+  location: "",
+  date: "",
+  time: "",
 };
 
 export const CreateMeetingForm = () => {
@@ -35,13 +38,11 @@ export const CreateMeetingForm = () => {
 
   const { authUser } = useAuth();
   const { userCache } = useUserModel();
-  const { createMeeting } = useMeetingModel(); // Meeting model
+  const { createMeeting, getMeeting } = useMeetingModel(); // Meeting model
 
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 
-  const [formData, setFormData] = useState<Meeting>(
-    initialMeetingForm as Meeting,
-  );
+  const [formData, setFormData] = useState(initialMeetingForm);
 
   const [selectedSpeakersKeys, setSelectedSpeakersKeys] = useState<
     Iterable<Key>
@@ -51,8 +52,6 @@ export const CreateMeetingForm = () => {
     () => Array.from(selectedSpeakersKeys).join(", "),
     [selectedSpeakersKeys],
   );
-
-  const { getMeeting } = useMeetingModel();
 
   const [meeting, setMeeting] = useState<Meeting | null>(null);
 
@@ -88,24 +87,33 @@ export const CreateMeetingForm = () => {
       return;
     }
 
-    if (!formData.title || !formData.date) {
-      return;
+    if (!formData.title || !formData.date || !formData.time) {
+      return; // Ensure title, date, and time are filled
     }
 
-    formData.date = new Date(formData.date);
-    formData.time = new Date(formData.time!).toTimeString();
+    console.log(formData)
+
+    // Combine the date and time into a single timestamp
+    const [hours, minutes] = formData.time.split(":").map(Number);
+    const meetingDate = new Date(formData.date);
+    meetingDate.setHours(hours, minutes, 0, 0); // Combine date and time
 
     try {
       await createMeeting({
         ...formData,
+        date: meetingDate, // Store combined timestamp as date
         meeting_id: `${formData.title}@${new Date().toISOString()}` // ISO string for precise timestamp
           .replace(/[\s:]/g, "-")
           .toLowerCase(),
-        participants: selectedSpeakersValue.split(", "),
+        guestAndSpeakers: selectedSpeakersValue
+          ? selectedSpeakersValue.split(", ")
+          : [],
       });
+
+      // Reset form after submission
       onClose();
-      setFormData(initialMeetingForm as unknown as Meeting);
-      setSelectedSpeakersKeys(new Set()); // Reset attendees
+      setFormData(initialMeetingForm);
+      setSelectedSpeakersKeys(new Set()); // Reset speakers
     } catch (error) {
       console.error("Error creating meeting:", error);
       alert("Failed to create meeting.");
@@ -257,7 +265,7 @@ export const CreateMeetingForm = () => {
                     />
                   </div>
 
-                  {/* Speakerss Dropdown */}
+                  {/* Speakers Dropdown */}
                   <Dropdown>
                     <DropdownTrigger>
                       <Button
@@ -272,7 +280,6 @@ export const CreateMeetingForm = () => {
                     <DropdownMenu
                       aria-label="Speakers Selection"
                       variant="flat"
-                      // disallowEmptySelection
                       closeOnSelect={false}
                       selectionMode="multiple"
                       selectedKeys={

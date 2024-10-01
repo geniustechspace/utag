@@ -58,7 +58,7 @@ export const BRARequestProvider = ({
   // Create BRA request with error handling
   const createBRARequest = async (braRequest: BRARequest) => {
     try {
-      const braRequestRef = doc(db, "bra_requests", braRequest.bra_id);
+      const braRequestRef = doc(db, "BRA Requests", braRequest.bra_id);
       const braRequestData: Partial<BRARequest> = { ...braRequest };
 
       // Remove undefined fields
@@ -87,7 +87,7 @@ export const BRARequestProvider = ({
     braRequestData: Partial<BRARequest>,
   ) => {
     try {
-      const braRequestRef = doc(db, "bra_requests", bra_id);
+      const braRequestRef = doc(db, "BRA Requests", bra_id);
 
       await updateDoc(braRequestRef, braRequestData);
       setBRARequestCache((prev) => ({
@@ -103,7 +103,7 @@ export const BRARequestProvider = ({
   // Delete BRA request with error handling
   const deleteBRARequest = async (bra_id: string) => {
     try {
-      const braRequestRef = doc(db, "bra_requests", bra_id);
+      const braRequestRef = doc(db, "BRA Requests", bra_id);
 
       await deleteDoc(braRequestRef);
       setBRARequestCache((prev) => {
@@ -124,7 +124,7 @@ export const BRARequestProvider = ({
     if (memoizedBRARequestCache[bra_id]) return memoizedBRARequestCache[bra_id];
 
     try {
-      const braRequestRef = doc(db, "bra_requests", bra_id);
+      const braRequestRef = doc(db, "BRA Requests", bra_id);
       const braRequestDoc = await getDoc(braRequestRef);
       const braRequestData = braRequestDoc.exists()
         ? (braRequestDoc.data() as BRARequest)
@@ -144,7 +144,7 @@ export const BRARequestProvider = ({
   const getAllBRARequests = async (fetchLimit = 50): Promise<BRARequest[]> => {
     try {
       const braRequestSnapshot = await getDocs(
-        query(collection(db, "bra_requests"), limit(fetchLimit)),
+        query(collection(db, "BRA Requests"), limit(fetchLimit)),
       );
       const braRequests = braRequestSnapshot.docs.map(
         (doc) => doc.data() as BRARequest,
@@ -172,7 +172,7 @@ export const BRARequestProvider = ({
     filters: Partial<BRARequest>,
   ): Promise<BRARequest[]> => {
     try {
-      const braRequestRef = collection(db, "bra_requests");
+      const braRequestRef = collection(db, "BRA Requests");
       let braRequestQuery = query(braRequestRef);
 
       Object.entries(filters).forEach(([key, value]) => {
@@ -200,7 +200,7 @@ export const BRARequestProvider = ({
   const subscribeToBRARequestUpdates = (
     callback: (braRequests: BRARequest[]) => void,
   ) => {
-    return onSnapshot(collection(db, "bra_requests"), (snapshot) => {
+    return onSnapshot(collection(db, "BRA Requests"), (snapshot) => {
       const braRequests = snapshot.docs.map((doc) => doc.data() as BRARequest);
 
       setBRARequestCache((prev) =>

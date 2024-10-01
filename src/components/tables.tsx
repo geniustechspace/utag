@@ -12,14 +12,15 @@ import {
 import { useAuth } from "@/providers/auth-provider";
 import {
   Feedback,
+  Meeting,
   Promotion,
   useFeedbackModel,
+  useMeetingModel,
   usePromotionModel,
   useUserModel,
 } from "@/providers/models";
 import { Button } from "@nextui-org/button";
 import { useEffect, useState } from "react";
-import { getFormattedDate } from "@/utils";
 import { ComponentLoading } from "./loading";
 import { FiMoreVertical } from "react-icons/fi";
 import {
@@ -29,6 +30,7 @@ import {
   DropdownTrigger,
 } from "@nextui-org/dropdown";
 import { internalUrls } from "@/config/site-config";
+import { getFormattedDate } from "@/utils";
 
 interface TableProps<T> {
   maxRow?: number;
@@ -45,16 +47,11 @@ export const QnATable = ({
 }: TableProps<Feedback>) => {
   const { user } = useAuth();
   const { getUser } = useUserModel();
-  const { feedbackCache, getAllFeedbacks, filterFeedbacks, updateFeedback } =
-    useFeedbackModel();
+  const { getAllFeedbacks, filterFeedbacks } = useFeedbackModel();
 
   const [feedbacks, setFeedbacks] = useState<Feedback[] | undefined>(undefined);
   const [userNames, setUserNames] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
-  const TopContent = (
-    <h3 className="font-bold">{label ? label : "Feedbacks"}</h3>
-  );
-  const BottomContent = <h3 className="font-bold">Recent in stock</h3>;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -144,7 +141,7 @@ export const QnATable = ({
           {(feedback) => (
             <TableRow key={feedback._id}>
               {(columnKey) =>
-                columnKey === "application_date" ? (
+                columnKey === "submitted_date" ? (
                   <TableCell>
                     {getFormattedDate(feedback.submitted_date)}
                   </TableCell>
@@ -222,22 +219,13 @@ export const PromotionsTable = ({
 }: TableProps<Promotion>) => {
   const { user } = useAuth();
   const { getUser } = useUserModel();
-  const {
-    promotionCache,
-    getAllPromotions,
-    filterPromotions,
-    updatePromotion,
-  } = usePromotionModel();
+  const { getAllPromotions, filterPromotions } = usePromotionModel();
 
   const [promotions, setPromotions] = useState<Promotion[] | undefined>(
     undefined,
   );
   const [userNames, setUserNames] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
-  const TopContent = (
-    <h3 className="font-bold">{label ? label : "Promotions"}</h3>
-  );
-  const BottomContent = <h3 className="font-bold">Recent in stock</h3>;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -334,11 +322,11 @@ export const PromotionsTable = ({
                   </TableCell>
                 ) : columnKey === "user_id" ? (
                   <TableCell>
-                    {userNames[promotion.user_id] || "Loading..."}
+                    {userNames[promotion.user_id] || ""}
                   </TableCell>
                 ) : columnKey === "attachment_count" ? (
                   <TableCell>
-                    {promotion.attachments?.length || "Loading..."}
+                    {promotion.attachments?.length || ""}
                   </TableCell>
                 ) : columnKey === "actions" ? (
                   <TableCell className="text-end">
@@ -392,6 +380,147 @@ export const PromotionsTable = ({
                   </TableCell>
                 ) : (
                   <TableCell>{getKeyValue(promotion, columnKey)}</TableCell>
+                )
+              }
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+};
+
+export const MeetingsTable = ({
+  maxRow,
+  label,
+  fields,
+  filter,
+}: TableProps<Meeting>) => {
+  const { user } = useAuth();
+  const { getAllMeetings } = useMeetingModel();
+
+  const [meetings, setMeetings] = useState<Meeting[] | undefined>(undefined);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user) return;
+      try {
+        const data = await getAllMeetings(maxRow);
+        maxRow ? setMeetings(data.slice(0, maxRow)) : setMeetings(data);
+      } catch (e) {
+        setError("Failed to load meetings");
+      }
+    };
+
+    fetchData();
+  }, [maxRow, getAllMeetings]);
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  if (!meetings) {
+    return <ComponentLoading message="Loading meetings ..." />;
+  }
+
+  const columns = [
+    { key: "title", label: "Title" },
+    { key: "location", label: "Address" },
+    { key: "guestAndSpeakers", label: "Guests/Speakers" },
+    { key: "date", label: "Meeting Date" },
+    { key: "time", label: "Meeting Time" },
+    // { key: "attendees", label: "Attendees" },
+    // { key: "time", label: "Meeting Time" },
+    { key: "actions", label: "Actions" },
+  ];
+
+  return (
+    <div className="w-full overflow-x-auto">
+      <Table
+        color="primary"
+        radius="sm"
+        selectionMode="none"
+        aria-label="Meetings table"
+        // topContent={TopContent}
+        classNames={{
+          wrapper:
+            "card h-full rounded-md border-emerald-200 bg-transparent shadow-inner drop-shadow-md dark:border-default",
+        }}
+      >
+        <TableHeader
+          columns={
+            fields ? columns.filter((col) => fields.includes(col.key)) : columns
+          }
+        >
+          {(column) =>
+            column.key === "actions" ? (
+              <TableColumn key={column.key} className="text-end">
+                {column.label}
+              </TableColumn>
+            ) : (
+              <TableColumn key={column.key}>{column.label}</TableColumn>
+            )
+          }
+        </TableHeader>
+        <TableBody items={meetings} emptyContent={"No rows to display."}>
+          {(meeting) => (
+            <TableRow key={meeting.meeting_id}>
+              {(columnKey) =>
+                columnKey === "date" ? (
+                  <TableCell>{getFormattedDate(meeting.date)}</TableCell>
+                ) : columnKey === "guestAndSpeakers" ? (
+                  <TableCell>
+                    {meeting.guestAndSpeakers?.join(", ") || ""}
+                  </TableCell>
+                ) : columnKey === "attendees" ? (
+                  <TableCell>{meeting.attendees?.length || ""}</TableCell>
+                ) : columnKey === "actions" ? (
+                  <TableCell className="text-end">
+                    <Dropdown
+                      showArrow
+                      radius="sm"
+                      placement="bottom-end"
+                      offset={12}
+                      shadow="md"
+                      closeOnSelect={true}
+                    >
+                      <DropdownTrigger>
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          color="primary"
+                          variant="flat"
+                          onClick={() => null}
+                        >
+                          <FiMoreVertical size={16} />
+                        </Button>
+                      </DropdownTrigger>
+
+                      <DropdownMenu
+                        color="primary"
+                        variant="faded"
+                        aria-label="Notifications"
+                      >
+                        <DropdownItem
+                          key="approve_meeting"
+                          classNames={{ title: "font-semibold" }}
+                          onClick={() => null}
+                        >
+                          Register
+                        </DropdownItem>
+                        <DropdownItem
+                          key="meeting_details"
+                          href={`${internalUrls.meetings}/${meeting.meeting_id}`}
+                          classNames={{ title: "font-semibold" }}
+                        >
+                          View details
+                        </DropdownItem>
+                      </DropdownMenu>
+                    </Dropdown>
+                  </TableCell>
+                ) : (
+                  <TableCell>{getKeyValue(meeting, columnKey)}</TableCell>
                 )
               }
             </TableRow>

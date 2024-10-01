@@ -8,6 +8,7 @@ import { FaFilePdf, FaFileWord } from "react-icons/fa";
 
 import { Document, useUserModel } from "@/providers/models";
 import { getFormattedDate } from "@/utils";
+import { getFileIcon } from "../utils";
 
 interface DocumentCardProps {
   document: Document;
@@ -39,17 +40,6 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
     fetchUploader();
   }, [document.uploader_id, getUser]);
 
-  // Helper function to get the correct file icon based on document type
-  const getFileIcon = (type: string) => {
-    switch (type.toLowerCase()) {
-      case "pdf":
-        return <FaFilePdf className="text-red-500" size={24} />;
-      case "docx":
-        return <FaFileWord className="text-blue-500" size={24} />;
-      default:
-        return <FaFileWord size={24} />;
-    }
-  };
 
   return (
     <Card radius="sm" className="w-full shadow-lg">

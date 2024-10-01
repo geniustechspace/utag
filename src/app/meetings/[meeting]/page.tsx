@@ -47,10 +47,10 @@ export default function MeetingDetailsPage() {
         <strong>Agenda:</strong> {meeting.agenda}
       </p>
       <p className="mb-2">
-        <strong>Date:</strong> {new Date(meeting.date).toLocaleDateString()}
+        <strong>Date:</strong> {meeting.date.toDate().toLocaleDateString()}
       </p>
       <p className="mb-2">
-        <strong>Time:</strong> {meeting.time}
+        <strong>Time:</strong> {meeting.date.toDate().toLocaleTimeString()}
       </p>
       <p className="mb-2">
         <strong>Location:</strong> {meeting.location}
@@ -63,7 +63,7 @@ export default function MeetingDetailsPage() {
       <div className="mb-2">
         <strong>Speakers:</strong>
         <ul className="list-disc pl-6">
-          {meeting.participants?.map((participant) => (
+          {meeting.guestAndSpeakers?.map((participant) => (
             <li key={participant}>{participant}</li>
           ))}
         </ul>
