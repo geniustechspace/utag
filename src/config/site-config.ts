@@ -66,14 +66,14 @@ export const siteConfig = {
             label: "Promotions",
             href: internalUrls.promotions,
         },
-        {
-            label: "Notifications",
-            href: internalUrls.notifications,
-        },
-        {
-            label: "Constitution",
-            href: internalUrls.constitution,
-        },
+        // {
+        //     label: "Notifications",
+        //     href: internalUrls.notifications,
+        // },
+        // {
+        //     label: "Constitution",
+        //     href: internalUrls.constitution,
+        // },
     ],
     links: {
         github: "https://github.com/nextui-org/nextui",

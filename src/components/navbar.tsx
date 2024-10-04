@@ -50,7 +50,7 @@ export const Navbar = () => {
 
       <NavbarContent className="" justify="end">
         <SingleThemeSwitch />
-        <NotificationDropdown />
+        {/* <NotificationDropdown /> */}
         <UserProfile />
       </NavbarContent>
 
