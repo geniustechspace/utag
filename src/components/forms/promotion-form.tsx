@@ -352,8 +352,9 @@ export const NewPromotionForm = () => {
                   <FiTrash2 />
                 </Button>
               </CardHeader>
-              <CardBody>
+              <CardBody className="gap-2">
                 <Textarea
+                  minRows={1}
                   label="Purpose and contributions"
                   // placeholder="Enter document purpose"
                   value={attachment.purpose}
@@ -369,6 +370,27 @@ export const NewPromotionForm = () => {
                     handleAttachmentInputChange(
                       index,
                       "purpose",
+                      e.target.value,
+                    )
+                  }
+                />
+                <Textarea
+                  minRows={1}
+                  label="Reference"
+                  // placeholder="Enter document purpose"
+                  value={attachment.reference}
+                  size="sm"
+                  radius="sm"
+                  color="primary"
+                  variant="bordered"
+                  classNames={{
+                    inputWrapper:
+                      "border-primary-500 data-[hover=true]:border-primary font-bold",
+                  }}
+                  onChange={(e) =>
+                    handleAttachmentInputChange(
+                      index,
+                      "reference",
                       e.target.value,
                     )
                   }

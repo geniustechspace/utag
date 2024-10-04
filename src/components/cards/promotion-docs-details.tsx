@@ -48,8 +48,24 @@ export const PromotionDocumentsDetails = ({
               </div>
             </div>
           }
+          classNames={{ content: "flex flex-col gap-3 px-3" }}
         >
-          {doc.purpose}
+          {doc.purpose && (
+            <div>
+              <h6 className="font-bold mb-2 underline underline-offset-4">
+                Purpose and contribution:
+              </h6>
+              <p>{doc.purpose}</p>
+            </div>
+          )}
+          {doc.reference && (
+            <div>
+              <h6 className="font-bold mb-2 underline underline-offset-4">
+                Reference:
+              </h6>
+              <p>{doc.reference}</p>
+            </div>
+          )}
         </AccordionItem>
       ))}
     </Accordion>

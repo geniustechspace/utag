@@ -1,10 +1,11 @@
 "use client";
 
 import { PromotionDocumentsDetails } from "@/components/cards/promotion-docs-details";
-import { ComponentLoading, ElevatedLoading } from "@/components/loading";
+import { ComponentLoading } from "@/components/loading";
 import { getFileIcon } from "@/components/utils";
 import {
   Promotion,
+  PromotionAttachment,
   usePromotionModel,
   User,
   useUserModel,
@@ -15,18 +16,21 @@ import { Card, CardBody, CardFooter, CardHeader } from "@nextui-org/card";
 import { Chip } from "@nextui-org/chip";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import PDFMerger from "pdf-merger-js";
+import { PDFDocument, rgb } from "pdf-lib";
 
+// Main component
 const PromotionDetailPage = () => {
   const pathname = usePathname();
   const router = useRouter();
-
   const { getUser } = useUserModel();
   const { getPromotion } = usePromotionModel();
 
   const [promotion, setPromotion] = useState<Promotion | null>(null);
   const [applicationUser, setApplicationUser] = useState<User | null>(null);
+  const [isMerging, setIsMerging] = useState(false);
 
-  // get the last segment of the URL path
+  // Extract promotion ID from URL
   const promotion_id = useMemo(() => pathname.split("/").pop(), [pathname]);
 
   useEffect(() => {
@@ -35,7 +39,7 @@ const PromotionDetailPage = () => {
       setPromotion(_promotion);
     };
     fetchPromotion();
-  }, [promotion_id]);
+  }, [promotion_id, getPromotion]);
 
   useEffect(() => {
     const fetchApplicationUser = async () => {
@@ -43,54 +47,190 @@ const PromotionDetailPage = () => {
       const _user = await getUser(promotion.user_id);
       setApplicationUser(_user);
     };
-
     fetchApplicationUser();
-  }, [promotion]);
+  }, [promotion, getUser]);
 
-  const handleDownloadPDF = () => {
-    // const doc = new jsPDF();
-    // doc.setFontSize(18);
-    // doc.pa("Promotion Details", 14, 22);
-    // doc.setFontSize(12);
-    // doc.p(`Promotion ID: ${promotion.promotion_id}`, 14, 32);
-    // doc.p(`User ID: ${promotion.user_id}`, 14, 42);
-    // doc.p(`Current Rank: ${promotion.current_rank}`, 14, 52);
-    // doc.p(`Desired Rank: ${promotion.desired_rank}`, 14, 62);
-    // doc.p(
-    //   `Application Date: ${new Date(promotion.application_date).toLocaleDateString()}`,
-    //   14,
-    //   72,
-    // );
-    // doc.p(`Status: ${promotion.status}`, 14, 82);
-    // doc.p(
-    //   `Assessment Score: ${promotion.assessment_score ?? "N/A"}`,
-    //   14,
-    //   92,
-    // );
-    // if (promotion.attachments?.length) {
-    //   autoTable(doc, {
-    //     startY: 102,
-    //     head: [
-    //       ["Type", "Purpose", "Awardable Score", "Awarded Score", "Pages"],
-    //     ],
-    //     body: promotion.attachments.map((attachment) => [
-    //       attachment.type,
-    //       attachment.purpose,
-    //       attachment.awardable_score ?? "N/A",
-    //       attachment.awarded_score ?? "N/A",
-    //       attachment.pages ?? "N/A",
-    //     ]),
-    //   });
-    // }
-    // doc.save("promotion-details.pdf");
-  };
+  // Creates main cover page
+  async function createMainCoverPage(
+    promotion: Promotion,
+  ): Promise<PDFDocument> {
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([595, 842]);
+    const { width, height } = page.getSize();
 
+    page.drawText("PROMOTION OF KNOWLEDGE", {
+      x: width / 2 - 150,
+      y: height - 100,
+      size: 25,
+      color: rgb(0, 0, 0),
+    });
+    page.drawText("UNIVERSITY OF ENERGY AND NATURAL RESOURCES", {
+      x: 50,
+      y: height - 150,
+      size: 15,
+      color: rgb(0, 0, 0),
+    });
+    page.drawText("DEPARTMENT OF COMPUTER SCIENCE AND INFORMATICS", {
+      x: 50,
+      y: height - 170,
+      size: 15,
+      color: rgb(0, 0, 0),
+    });
+    page.drawText(
+      `EVIDENCE OF PROMOTION OF KNOWLEDGE FOR ${applicationUser?.name}`,
+      { x: 50, y: height - 210, size: 14, color: rgb(0, 0, 0) },
+    );
+    page.drawText(`TO ${promotion.desired_rank}`, {
+      x: 50,
+      y: height - 230,
+      size: 14,
+      color: rgb(0, 0, 0),
+    });
+    page.drawText(promotion.application_date.toDate().toLocaleDateString(), {
+      x: width - 150,
+      y: height - 230,
+      size: 14,
+      color: rgb(0, 0, 0),
+    });
+
+    return pdfDoc;
+  }
+
+  // Creates Table of Contents
+  async function createTableOfContent(
+    attachments: PromotionAttachment[],
+  ): Promise<PDFDocument> {
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([595, 842]);
+    const { width, height } = page.getSize();
+
+    page.drawText("TABLE OF CONTENT", {
+      x: width / 2 - 100,
+      y: height - 50,
+      size: 20,
+      color: rgb(0, 0, 0),
+    });
+    attachments.forEach((attachment, index) => {
+      page.drawText(
+        `${index + 1}. ${attachment.document_title}   SPP${attachment.sppCount || "N/A"}`,
+        { x: 50, y: height - 100 - index * 20, size: 12, color: rgb(0, 0, 0) },
+      );
+    });
+
+    return pdfDoc;
+  }
+
+  // Creates individual attachment cover pages
+  async function createAttachmentCoverPage(
+    attachment: PromotionAttachment,
+  ): Promise<PDFDocument> {
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([595, 842]);
+    const { width, height } = page.getSize();
+
+    page.drawText(`Attachment: ${attachment.document_title}`, {
+      x: 50,
+      y: height - 100,
+      size: 20,
+      color: rgb(0, 0, 0),
+    });
+    page.drawText(`Document Type: ${attachment.document_type}`, {
+      x: 50,
+      y: height - 130,
+      size: 14,
+      color: rgb(0, 0, 0),
+    });
+    // page.drawText(`Awardable Score: ${attachment.awardable_score || "N/A"}`, {
+    //   x: 50,
+    //   y: height - 160,
+    //   size: 14,
+    //   color: rgb(0, 0, 0),
+    // });
+    // page.drawText(`Awarded Score: ${attachment.awarded_score || "N/A"}`, {
+    //   x: 50,
+    //   y: height - 190,
+    //   size: 14,
+    //   color: rgb(0, 0, 0),
+    // });
+    page.drawText(`SPP Count: ${attachment.sppCount || "N/A"}`, {
+      x: 50,
+      y: height - 220,
+      size: 14,
+      color: rgb(0, 0, 0),
+    });
+
+    return pdfDoc;
+  }
+
+  // Merge documents into a single PDF
+  async function mergePromotionDocuments(promotion: Promotion) {
+    setIsMerging(true);
+    try {
+      const merger = new PDFMerger();
+
+      // Add Main Cover Page
+      const coverPage = await createMainCoverPage(promotion);
+      await merger.add(
+        new Blob([await coverPage.save()], { type: "application/pdf" }),
+      );
+
+      // Add Table of Contents
+      const tocPage = await createTableOfContent(promotion.attachments || []);
+      await merger.add(
+        new Blob([await tocPage.save()], { type: "application/pdf" }),
+      );
+
+      // Add CV and Attachments
+      const documents: PromotionAttachment[] = [
+        {
+          document_id: "cv",
+          document_title: "Curriculum Vitae",
+          document_type: "CV",
+          upload_date: promotion.application_date,
+          uploader_id: promotion.user_id,
+          fileUrl: promotion.cvUrl,
+        },
+        ...(promotion.attachments || []),
+      ];
+
+      for (const doc of documents) {
+        // Add individual attachment cover pages
+        const attachmentCover = await createAttachmentCoverPage(doc);
+        await merger.add(
+          new Blob([await attachmentCover.save()], { type: "application/pdf" }),
+        );
+
+        // Add the document itself
+        const docBlob = await fetch(doc.fileUrl).then((res) => res.blob());
+        await merger.add(docBlob);
+      }
+
+      // Create final merged PDF and trigger download
+      const mergedBytes = await merger.saveAsBuffer();
+      const downloadBlob = new Blob([mergedBytes], { type: "application/pdf" });
+      const downloadUrl = URL.createObjectURL(downloadBlob);
+
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = `Promotion_${promotion.promotion_id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      setIsMerging(false);
+    } catch (error) {
+      console.error("Error merging PDF:", error);
+      setIsMerging(false);
+    }
+  }
+
+  // Render component
   if (!promotion) {
-    return <ComponentLoading message="Loading promotion details ..." />;
+    return <ComponentLoading message="Loading promotion details..." />;
   }
 
   return (
-    <Card radius="sm" className="">
+    <Card radius="sm">
       <CardHeader className="flex-row justify-between px-6">
         <div className="flex items-center gap-3">
           <Avatar size="lg">{applicationUser?.name[0].toUpperCase()}</Avatar>
@@ -103,7 +243,6 @@ const PromotionDetailPage = () => {
             </h3>
           </div>
         </div>
-
         <div className="mt-4 gap-6">
           <div className="flex justify-between gap-2">
             <span className="font-semibold">Application Date:</span>
@@ -113,7 +252,7 @@ const PromotionDetailPage = () => {
           </div>
           <div className="flex justify-between gap-2">
             <span className="font-semibold">Assessment score:</span>
-            {promotion.assessment_score || 67}
+            <span>{promotion.assessment_score || 67}</span>
           </div>
           <div className="flex justify-between gap-2">
             <span className="font-semibold">Status:</span>
@@ -126,15 +265,8 @@ const PromotionDetailPage = () => {
               {promotion.status}
             </Chip>
           </div>
-          {promotion.assessment_score && (
-            <div className="flex justify-between">
-              <span className="font-semibold">Assessment Score:</span>
-              <span>{promotion.assessment_score}</span>
-            </div>
-          )}
         </div>
       </CardHeader>
-
       <CardBody>
         <h3 className="text-lg font-bold text-center uppercase">
           Supporting documents
@@ -143,7 +275,6 @@ const PromotionDetailPage = () => {
           <PromotionDocumentsDetails attachments={promotion.attachments} />
         )}
       </CardBody>
-
       <CardFooter className="gap-3 justify-end">
         <Button
           radius="sm"
@@ -151,14 +282,18 @@ const PromotionDetailPage = () => {
           variant="ghost"
           startContent={getFileIcon(promotion.cvUrl.split(".").pop() || "")}
           className="ps-1"
+          onClick={() => window.open(promotion.cvUrl, "_blank")}
         >
           Download CV / Resume
         </Button>
-        <Button radius="sm" color="primary" variant="ghost">
-          Download documents
-        </Button>
-        <Button radius="sm" color="primary" variant="ghost">
-          Download aplication form
+        <Button
+          radius="sm"
+          color="primary"
+          variant="ghost"
+          onClick={() => mergePromotionDocuments(promotion)}
+          isLoading={isMerging}
+        >
+          {isMerging ? "Merging documents..." : "Download application form"}
         </Button>
       </CardFooter>
     </Card>

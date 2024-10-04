@@ -219,7 +219,13 @@ export const PromotionsTable = ({
 }: TableProps<Promotion>) => {
   const { user } = useAuth();
   const { getUser } = useUserModel();
-  const { getAllPromotions, filterPromotions } = usePromotionModel();
+  const {
+    promotionCache,
+    getAllPromotions,
+    filterPromotions,
+    updatePromotion,
+    deletePromotion,
+  } = usePromotionModel();
 
   const [promotions, setPromotions] = useState<Promotion[] | undefined>(
     undefined,
@@ -263,7 +269,7 @@ export const PromotionsTable = ({
     };
 
     fetchData();
-  }, [maxRow, user]);
+  }, [maxRow, user, promotionCache]);
 
   if (error) {
     return <div>{error}</div>;
@@ -312,7 +318,7 @@ export const PromotionsTable = ({
             )
           }
         </TableHeader>
-        <TableBody items={promotions} emptyContent={"No rows to display."}>
+        <TableBody items={promotions} emptyContent={"No promotions to display."}>
           {(promotion) => (
             <TableRow key={promotion.promotion_id}>
               {(columnKey) =>
@@ -321,13 +327,9 @@ export const PromotionsTable = ({
                     {getFormattedDate(promotion.application_date)}
                   </TableCell>
                 ) : columnKey === "user_id" ? (
-                  <TableCell>
-                    {userNames[promotion.user_id] || ""}
-                  </TableCell>
+                  <TableCell>{userNames[promotion.user_id] || ""}</TableCell>
                 ) : columnKey === "attachment_count" ? (
-                  <TableCell>
-                    {promotion.attachments?.length || ""}
-                  </TableCell>
+                  <TableCell>{promotion.attachments?.length || ""}</TableCell>
                 ) : columnKey === "actions" ? (
                   <TableCell className="text-end">
                     <Dropdown
@@ -365,15 +367,33 @@ export const PromotionsTable = ({
                         <DropdownItem
                           key="approve_promotion"
                           classNames={{ title: "font-semibold" }}
-                          onClick={() => null}
+                          onClick={() =>
+                            updatePromotion(promotion.promotion_id, {
+                              status: "approved",
+                            })
+                          }
                         >
-                          Download everything
+                          Approve promotion
                         </DropdownItem>
                         <DropdownItem
-                          key="download_documents"
+                          key="reject_promotion"
                           classNames={{ title: "font-semibold" }}
+                          onClick={() =>
+                            updatePromotion(promotion.promotion_id, {
+                              status: "rejected",
+                            })
+                          }
                         >
-                          Download documents only
+                          Reject promotion
+                        </DropdownItem>
+                        <DropdownItem
+                          key="delete_promotion"
+                          classNames={{ title: "font-semibold" }}
+                          onClick={() =>
+                            deletePromotion(promotion.promotion_id)
+                          }
+                        >
+                          Delete promotion
                         </DropdownItem>
                       </DropdownMenu>
                     </Dropdown>

@@ -40,7 +40,7 @@ const PromotionsPageLayout = ({ children }: { children: React.ReactNode }) => {
     pathname === internalUrls.promotions
       ? "Promotions"
       : pathname === internalUrls.newPromotion
-        ? "New Promotion Portal"
+        ? "Promotion of Knowledge Portal"
         : `${promotion?.current_rank} - ${promotion?.desired_rank}`;
 
   return (

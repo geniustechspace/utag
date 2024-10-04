@@ -187,7 +187,7 @@ export const NewDocumentForm = ({
                   <Input
                     multiple={multiple}
                     name="document_files"
-                    accept=".pdf,.docx,.doc"
+                    accept=".pdf"
                     type="file"
                     size="lg"
                     radius="sm"

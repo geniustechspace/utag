@@ -17,6 +17,7 @@ import { db } from "@/config/firebase-config";
 import { Document } from "./document";
 
 export interface PromotionAttachment extends Document {
+  reference?: string;
   awardable_score?: string;
   awarded_score?: string;
   sppCount?: string;
